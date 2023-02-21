@@ -16,9 +16,18 @@ CORS(app)
 
 user_to_repos = {}
 
+@app.route("/coursesStartDate", methods=["GET"])
+def getCoursesStartDate():
+    # 2022-09-26
+    return [jsonObject["Kursbeginn"] for jsonObject in getJsonList()]
+
+@app.route("/coursesCourseOwner", methods=["GET"])
+def getCoursesCourseOwner():
+    return [jsonObject["Anbietername"] for jsonObject in getJsonList()]
+
+
 @app.route("/coursesCount", methods=["GET"])
 def getCoursesCount():
-    #return getJsonList()
     return str(len(getJsonList()))
 
 def getJsonList():

@@ -10,7 +10,7 @@ const yAxisValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 
 const margin = {top: 10, right: 10, bottom: 50, left: 50},
     width = 350 - margin.left - margin.right,
     height = 350 - margin.top - margin.bottom;
-const parseDate = d3.timeParse('%Y,%m,%d');
+const parseDate = d3.timeParse('%Y-%m-%d');
 
 function drawLineChartSVG(dataset) {
     const lineChartDataset = dataset.map(data => [parseDate(data[0]), data[1]])
@@ -157,12 +157,13 @@ function ScatterChart() {
 
     useEffect(() => {
         if (!startDateJson) return;
-
+        console.log(startDateJson);
         // organize data for the chart
         var count = {};
         startDateJson.forEach(function(i) { count[i] = (count[i]||0) + 1;});
         const test = Object.entries(count).map( startDate => [startDate[0], parseInt(startDate[1])]);
-        const scatterChartDataset = Object.entries(count).map( startDate => [parseInt(startDate[0].split(",")[1]), parseInt(startDate[0].split(",")[2]), parseInt(startDate[1])]);
+        console.log(count);
+        const scatterChartDataset = Object.entries(count).map( startDate => [parseInt(startDate[0].split("-")[1]), parseInt(startDate[0].split("-")[2]), parseInt(startDate[1])]);
         //console.log(test);
         //console.log(parseDate(test[0][0]));
         //console.log(scatterChartDataset);
