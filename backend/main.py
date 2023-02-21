@@ -27,6 +27,16 @@ def split_all_words_of(jsonItem):
        jsonObject = json.loads(jsonItem)
     return jsonObject['Kurstitel'] + jsonObject['Kursbeschreibung']
 
+def count_occurrences_of_each_elemt_in(list_elem):  
+        amount_dict = dict()
+        for key in list_elem:
+            if (key in amount_dict):
+                amount_dict[key] = (amount_dict[key]) + 1
+            else:
+                amount_dict[key] = 0
+
+        return [list(tuple_elem) for tuple_elem in amount_dict.items()]
+
 def create_course_provider_jsonfile():
     course_provider_list = [jsonObject["Anbietername"] for jsonObject in get_jsonlist_from_database()]
     provider_occurrences_amount = count_occurrences_of_each_elemt_in(course_provider_list)
@@ -40,7 +50,7 @@ def create_course_provider_jsonfile():
             else: 
                 filestream.write(',[' + provider[0] + ',' + str(provider[1]) + ']')
         filestream.write(']')
-        
+
 #### Routings ####
 @app.route("/coursesStartDate", methods=["GET"])
 def get_courses_start_date():
@@ -65,31 +75,65 @@ def get_word_count_of_titel_and_description():
     for jsonObject in get_jsonlist_from_database():
         courseTitelWords = nltk.word_tokenize(((jsonObject['Kurstitel']).lower()))        
         wordsCount.update([word for word in courseTitelWords if word not in stopWords and word not in string.punctuation+"0123456789"])
-
-    return wordsCount.most_common(100)
+    return [list(tuple_elem) for tuple_elem in wordsCount.most_common(100)]
     
 @app.route("/getLocations", methods=["GET"])
 def get_locations():
-    markerlocations = [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
-    return markerlocations
+    return [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
+
+
+# TODO replace commas inside string with " " 
+def create_file_from_list(list_elem, filename):
+    first_comma_ignored = False
+    with open("./database/" + filename, "w") as filestream:
+        filestream.write('[')
+        for elem in list_elem:
+            if elem != "":
+                first_comma_ignored_2 = False
+                if (first_comma_ignored != True):
+                        first_comma_ignored = True
+                else:
+                    filestream.write(',')
+                if isinstance(elem,list):
+                    filestream.write('[')
+                    for elem_2 in elem:
+                        if (first_comma_ignored_2 != True):
+                            filestream.write(str(elem_2))
+                            first_comma_ignored_2 = True
+                        else: 
+                            filestream.write(',' + str(elem_2))
+                    filestream.write(']')
+                else:
+                        filestream.write(str(elem))
+        filestream.write(']')
+
+def get_word_count_list():
+    filter_words = set(stopwords.words('german')) 
+    filter_words.update({"ca", "tage", "tag", "erstellen", "gelernt", "vertiefung", "inhalte", "sowie", "lernen", "kurs", "gelernten", "m/w/d", "i", "ii", "iii" , "iv", "teil", "stufe"})
+    filter_symbols = string.punctuation + "0123456789"
+    word_occurrences = nltk.FreqDist('')
+    for jsonObject in get_jsonlist_from_database():
+        course_titel_words = nltk.word_tokenize(((jsonObject['Kurstitel']).lower()))        
+        word_occurrences.update([word for word in course_titel_words if word not in filter_words and word not in filter_symbols])
+
+    return [list(tuple_elem) for tuple_elem in word_occurrences.most_common(100)]
 
 @app.route("/runDatabase", methods=["GET"])
 def run_database():
-    #create_words_count_jsonfile()
+    markerlocations = [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
+    create_file_from_list(markerlocations, "course_location.txt")
+    del markerlocations
+    course_provider_list = [jsonObject["Anbietername"] for jsonObject in get_jsonlist_from_database()]
+    course_provider_list = count_occurrences_of_each_elemt_in(course_provider_list)
+    create_file_from_list(course_provider_list, "course_providers.txt")
+    del course_provider_list
+    word_count_list = get_word_count_list()
+    create_file_from_list(word_count_list, "word_occurrences.txt")
+    del word_count_list
     #create_courses_start_date_jsonfile() (sorted)
-    create_course_provider_jsonfile()
-    #create_marker_locations_jsonfile()
+    #create_course_provider_jsonfile()
     return "done"
  
-def count_occurrences_of_each_elemt_in(list):  
-        amount_dict = dict()
-        for key in list:
-            if (key in amount_dict):
-                amount_dict[key] = (amount_dict[key]) + 1
-            else:
-                amount_dict[key] = 0
-
-        return amount_dict.items()
 
 
 if __name__ == "__main__":
