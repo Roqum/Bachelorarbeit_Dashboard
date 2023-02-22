@@ -26,9 +26,8 @@ function App() {
   }
   function transformDataForCloud(listWithLists) {
     let dataForCloud = [];
-
     listWithLists = Array.from(listWithLists);
-    dataForCloud = listWithLists.map((item) => ({text: item[0], value: item[1]}));
+    dataForCloud = listWithLists.map(item => ({text: item[0], value: parseFloat(item[1])}));
     setCloudData(dataForCloud);
   }
 
@@ -37,9 +36,7 @@ function App() {
       fetch(`${API_URL}/wordsCount`)
       .then( (res) => res.json())
       .then( (data) => transformDataForCloud(data))
-      .catch( (err) => console.log(err) );
-      //.then((res) => res.body.getReader().read().then(({data,value}) => 
-      //console.log(decoder.decode(value))))
+      .catch( (err) => console.log("wordcloud error: " + err) );
       loaded = true;
     }
     } 

@@ -14,9 +14,9 @@ function BarChart() {
         height = 500 - margin.top - margin.bottom;
 
     const fetchData = async () => {
-        const response = await fetch(`${API_URL}/coursesCourseOwner`);
+        const response = await fetch(`${API_URL}/coursesProvider`);
         responseJson.current = await response.json();
-        setStartDateJson(responseJson.current);
+        setStartDateJson(responseJson.current.map(listElem => [listElem[0], parseFloat(listElem[1])]));
     }
     var Tooltip = d3.select("#barChart")
         .append("div")
@@ -56,7 +56,7 @@ function BarChart() {
               word,
               line = [],
               lineNumber = 0,
-              lineHeight = 0.8, // ems
+              lineHeight = 0.8,
               y = text.attr("y"),
               dy = parseFloat(text.attr("dy")),
               tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
@@ -92,8 +92,6 @@ function BarChart() {
             .style("text-anchor", "end")
             .attr("transform", "translate(-10, 3) rotate(-65)");
             
-            //.tickFormat((d,i) => axisLabels[i]));
-
         const y = d3.scaleLinear()
             .domain([0,dataset[0][1]])
             .range([ height, 0]);
@@ -126,44 +124,9 @@ function BarChart() {
 
     useEffect(() => {
         if (!startDateJson) return;
-
-        // organize data for the chart
-        var count = {};
-        startDateJson.forEach(function(i) { count[i] = (count[i]||0) + 1;});
-        var dataArray = Object.entries(count).map( startDate => [startDate[0], parseInt(startDate[1])]);
-        const dataArrayTop20 = dataArray.slice(0,ammountOfShownProvider);
-        dataArray = [];
-        dataArrayTop20.sort(function(x,y){return y[1] - x[1];});
-        drawHeatMap(dataArrayTop20);
+        drawHeatMap(startDateJson.slice(0,ammountOfShownProvider));
         
     },[startDateJson]);
-
-    // Step 5
-        // Title
-        /*svg.append('text')
-        .attr('x', width/2 + 100)
-        .attr('y', 30)
-        .attr('text-anchor', 'middle')
-        .style('font-family', 'Helvetica')
-        .style('font-size', 20)
-        .text('Scatter Plot');
-        
-        // X label
-        svg.append('text')
-        .attr('x', width/2 + 100)
-        .attr('y', height - 15 + 150)
-        .attr('text-anchor', 'middle')
-        .style('font-family', 'Helvetica')
-        .style('font-size', 12)
-        .text('Month');
-        
-        // Y label
-        svg.append('text')
-        .attr('text-anchor', 'middle')
-        .attr('transform', 'translate(60,' + height + ')rotate(-90)')
-        .style('font-family', 'Helvetica')
-        .style('font-size', 12)
-        .text('Day');*/
 
     return (<div id="barChart" className="fullwidth">
 

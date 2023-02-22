@@ -54,7 +54,7 @@ function ScatterChart() {
     const fetchData = async () => {
         const response = await fetch(`${API_URL}/coursesStartDate`);
         responseJson.current = await response.json();
-        setStartDateJson(responseJson.current);
+        setStartDateJson(responseJson.current.map( startDate => [parseInt(startDate[0].split("-")[1]), parseInt(startDate[0].split("-")[2]), parseInt(startDate[1])]));
     }
     var Tooltip = d3.select("#scatterChart")
         .append("div")
@@ -157,18 +157,17 @@ function ScatterChart() {
 
     useEffect(() => {
         if (!startDateJson) return;
-        console.log(startDateJson);
         // organize data for the chart
-        var count = {};
-        startDateJson.forEach(function(i) { count[i] = (count[i]||0) + 1;});
-        const test = Object.entries(count).map( startDate => [startDate[0], parseInt(startDate[1])]);
-        console.log(count);
-        const scatterChartDataset = Object.entries(count).map( startDate => [parseInt(startDate[0].split("-")[1]), parseInt(startDate[0].split("-")[2]), parseInt(startDate[1])]);
+        //var count = {};
+        //startDateJson.forEach(function(i) { count[i] = (count[i]||0) + 1;});
+        //const test = Object.entries(count).map( startDate => [startDate[0], parseInt(startDate[1])]);
+        //console.log(count);
+        //const scatterChartDataset = Object.entries(count).map( startDate => [parseInt(startDate[0].split("-")[1]), parseInt(startDate[0].split("-")[2]), parseInt(startDate[1])]);
         //console.log(test);
         //console.log(parseDate(test[0][0]));
         //console.log(scatterChartDataset);
-        drawLineChartSVG(test);
-        drawHeatMap(scatterChartDataset);
+        drawLineChartSVG(startDateJson);
+        drawHeatMap(startDateJson);
         
     },[startDateJson]);
 

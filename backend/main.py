@@ -16,7 +16,7 @@ CORS(app)
 
 
 DATABSE_FILENAME = "Top20k.json"
-user_to_repos = {}
+#user_to_repos = {}
 
 def get_jsonlist_from_database():
     with open("./database/" + DATABSE_FILENAME, "r", encoding="utf-8") as stream: 
@@ -55,13 +55,19 @@ def create_course_provider_jsonfile():
 #### Routings ####
 @app.route("/coursesStartDate", methods=["GET"])
 def get_courses_start_date():
-    # 2022-09-26
-    return [jsonObject["Kursbeginn"] for jsonObject in get_jsonlist_from_database()]
+    try:
+        with open("./database/created_files/start_dates.txt", "r") as filestream:
+            return filestream.read()
+    except FileNotFoundError:
+        return "No Data file found"
 
 @app.route("/coursesProvider", methods=["GET"])
 def get_courses_provider():
-    return [jsonObject["Anbietername"] for jsonObject in get_jsonlist_from_database()]
-
+    try:
+        with open("./database/created_files/course_providers.txt", "r") as filestream:
+                return filestream.read()
+    except FileNotFoundError:
+        return "No Data file found"
 
 @app.route("/coursesCount", methods=["GET"])
 def get_courses_count():
@@ -69,18 +75,19 @@ def get_courses_count():
     
 @app.route("/wordsCount", methods=["GET"])
 def get_word_count_of_titel_and_description():
-    allWordsList = []
-    stopWords = set(stopwords.words('german')) 
-    stopWords.update({"ca","tage","tag","erstellen","gelernt","vertiefung","inhalte","sowie","lernen","kurs","gelernten"})
-    wordsCount = nltk.FreqDist('')
-    for jsonObject in get_jsonlist_from_database():
-        courseTitelWords = nltk.word_tokenize(((jsonObject['Kurstitel']).lower()))        
-        wordsCount.update([word for word in courseTitelWords if word not in stopWords and word not in string.punctuation+"0123456789"])
-    return [list(tuple_elem) for tuple_elem in wordsCount.most_common(100)]
+    try:
+        with open("./database/created_files/word_occurrences.txt", "r") as filestream:
+                return filestream.read()
+    except FileNotFoundError:
+        return "No Data file found"
     
 @app.route("/getLocations", methods=["GET"])
 def get_locations():
-    return [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
+    try:
+        with open("./database/created_files/course_location.txt", "r") as filestream:
+                return filestream.read()
+    except FileNotFoundError:
+        return "No Data file found"
 
 
 # TODO replace commas inside string with " " 
@@ -99,13 +106,13 @@ def create_file_from_list(list_elem, filename):
                     filestream.write('[')
                     for elem_2 in elem:
                         if (first_comma_ignored_2 != True):
-                            filestream.write(str(elem_2))
+                            filestream.write('"' + str(elem_2).replace('\n', '') + '"')
                             first_comma_ignored_2 = True
                         else: 
-                            filestream.write(',' + str(elem_2))
+                            filestream.write(',"' + str(elem_2).replace('\n', '') + '"')
                     filestream.write(']')
                 else:
-                        filestream.write(str(elem))
+                        filestream.write('"' + str(elem).replace('\n', '') + '"')
         filestream.write(']')
 
 def get_word_count_list():
