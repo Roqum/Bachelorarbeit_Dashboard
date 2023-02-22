@@ -64,23 +64,24 @@ function LeafletMap() {
 
 
   const createMarkers = (data) => data.forEach(markerData => {
-    const marker = L.marker([markerData[1],markerData[0]], {icon: markerIcon}).bindPopup(markerData[2] + "<br> <a href=" + markerData[3] + " target='_blank'>" + markerData[3] + "</a>")
+    const marker = L.marker([parseFloat(markerData[1]),parseFloat(markerData[0])], {icon: markerIcon}).bindPopup(markerData[2] + "<br> <a href=" + markerData[3] + " target='_blank'>" + markerData[3] + "</a>")
     markerGroup.addLayer(marker);     
   })
+
   const fetchData = async () => {
-    const response = await fetch(`${API_URL}/getLocations`);
+    const response = await fetch(`${API_URL}/getLocations`).catch(err => console.log("Fetch marker data error: "+ err));
     responseJson.current = await response.json();
     
-  if (currentPositon_lat != 0 && currentPositon_long != 0) {
-    mapInstance.createPane("locationMarker");
-    mapInstance.getPane("locationMarker").style.zIndex = 999;
-    var currentPositionMarker = L.marker([currentPositon_lat, currentPositon_long],{icon: currentPositionIcon, title: "current location", pane:"locationMarker"}).bindPopup("Current Location");
-    currentPositionMarker.addTo(mapInstance);
-  }
-  setMarkerJson(responseJson.current);
-  createMarkers(responseJson.current);
-  mapInstance.fireEvent("moveend");
-  setTotalMarkersCount(responseJson.current.length);
+    if (currentPositon_lat != 0 && currentPositon_long != 0) {
+      mapInstance.createPane("locationMarker");
+      mapInstance.getPane("locationMarker").style.zIndex = 999;
+      var currentPositionMarker = L.marker([currentPositon_lat, currentPositon_long],{icon: currentPositionIcon, title: "current location", pane:"locationMarker"}).bindPopup("Current Location");
+      currentPositionMarker.addTo(mapInstance);
+    }
+    setMarkerJson(responseJson.current.map(([lat, long, course, link]) => [parseFloat(lat), parseFloat(long), course, link]));
+    createMarkers(responseJson.current);
+    mapInstance.fireEvent("moveend");
+    setTotalMarkersCount(responseJson.current.length);
   }
   
   
