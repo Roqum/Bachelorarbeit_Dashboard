@@ -1,6 +1,7 @@
 import asyncio
 from flask import Flask, request
 from flask_cors import CORS
+from datetime import datetime, date
 import json_stream
 import string 
 import json
@@ -30,10 +31,10 @@ def split_all_words_of(jsonItem):
 def count_occurrences_of_each_elemt_in(list_elem):  
         amount_dict = dict()
         for key in list_elem:
-            if (key in amount_dict):
-                amount_dict[key] = (amount_dict[key]) + 1
-            else:
-                amount_dict[key] = 0
+                if (key in amount_dict):
+                    amount_dict[key] = (amount_dict[key]) + 1
+                else:
+                    amount_dict[key] = 1
 
         return [list(tuple_elem) for tuple_elem in amount_dict.items()]
 
@@ -85,7 +86,7 @@ def get_locations():
 # TODO replace commas inside string with " " 
 def create_file_from_list(list_elem, filename):
     first_comma_ignored = False
-    with open("./database/" + filename, "w") as filestream:
+    with open("./database/created_files/" + filename, "w") as filestream:
         filestream.write('[')
         for elem in list_elem:
             if elem != "":
@@ -120,19 +121,32 @@ def get_word_count_list():
 
 @app.route("/runDatabase", methods=["GET"])
 def run_database():
+
+    # creating data file for the map markers
     markerlocations = [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
     create_file_from_list(markerlocations, "course_location.txt")
     del markerlocations
-    course_provider_list = [jsonObject["Anbietername"] for jsonObject in get_jsonlist_from_database()]
-    course_provider_list = count_occurrences_of_each_elemt_in(course_provider_list)
-    create_file_from_list(course_provider_list, "course_providers.txt")
-    del course_provider_list
+
+    # creating data file for the provider bar chart
+    provider_occurrences_list = [jsonObject["Anbietername"] for jsonObject in get_jsonlist_from_database() if jsonObject["Anbietername"] != ""]
+    provider_occurrences_list = count_occurrences_of_each_elemt_in(provider_occurrences_list)
+    provider_occurrences_list.sort(key = lambda provider: provider[1], reverse = True)
+    create_file_from_list(provider_occurrences_list, "course_providers.txt")
+    del provider_occurrences_list
+
+    # create data file for the wordcloud
     word_count_list = get_word_count_list()
     create_file_from_list(word_count_list, "word_occurrences.txt")
     del word_count_list
-    #create_courses_start_date_jsonfile() (sorted)
-    #create_course_provider_jsonfile()
-    return "done"
+
+    # create data file for course start date (heatmap and linechart)
+    start_dates_list = [jsonObject["Kursbeginn"] for jsonObject in get_jsonlist_from_database() if jsonObject["Kursbeginn"] != ""]
+    start_dates_list = count_occurrences_of_each_elemt_in(start_dates_list)
+    start_dates_list.sort(key = lambda date_occurrences:  datetime.strptime(date_occurrences[0], '%Y-%m-%d'))
+    create_file_from_list(start_dates_list, "start_dates.txt")
+    del start_dates_list
+
+    return "All Files are created"
  
 
 
