@@ -33,21 +33,21 @@ function LeafletMap() {
     iconCreateFunction: function (cluster) {
       var childCount = cluster.getChildCount();
 
-    var c = ' marker-cluster-';
-    if (childCount < 100) {
-      c += 'small';
-    }
-    else if (childCount < 3000) {
-      c += 'medium';
-    }
-    else if (childCount  < 10000) {
-      c += 'large';
-    }
-    else if (childCount  >= 10000) {
-      c += 'large extra';
-    }
+      var c = ' marker-cluster-';
+      if (childCount < 100) {
+        c += 'small';
+      }
+      else if (childCount < 3000) {
+        c += 'medium';
+      }
+      else if (childCount  < 10000) {
+        c += 'large';
+      }
+      else if (childCount  >= 10000) {
+        c += 'large extra';
+      }
 
-    return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+      return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
   }})
   const currentPositionIcon = L.divIcon({
     className: 'map-marker',
@@ -69,7 +69,7 @@ function LeafletMap() {
   })
 
   const fetchData = async () => {
-    const response = await fetch(`${API_URL}/getLocations`).catch(err => console.log("Fetch marker data error: "+ err));
+    const response = await fetch(`${API_URL}/getLocations`);
     responseJson.current = await response.json();
     
     if (currentPositon_lat != 0 && currentPositon_long != 0) {

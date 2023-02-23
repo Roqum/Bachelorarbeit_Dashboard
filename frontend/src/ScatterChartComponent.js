@@ -13,7 +13,7 @@ const margin = {top: 10, right: 10, bottom: 50, left: 50},
 const parseDate = d3.timeParse('%Y-%m-%d');
 
 function drawLineChartSVG(dataset) {
-    const lineChartDataset = dataset.map(data => [parseDate(data[0]), data[1]])
+    const lineChartDataset = dataset.filter(rawdata => Date.parse("01-01-2030") > Date.parse(rawdata[0])).map(data => [parseDate(data[0]), parseFloat(data[1])])
     var svgLineChart = d3.select("#lineChart")
                         .append("svg")
                         .attr("width", width + margin.left + margin.right)
@@ -21,19 +21,19 @@ function drawLineChartSVG(dataset) {
                         .append("g")
                         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
-    const x = d3.scaleTime()
-                .domain(d3.extent(lineChartDataset, function(d) { return d[0]; }))
+    const x_linechart = d3.scaleTime()
+                .domain(d3.extent(lineChartDataset, function(d) {  return d[0] }))
                 .range([ 0, width ]);
     svgLineChart.append("g")
         .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(x));
+        .call(d3.axisBottom(x_linechart));
                   
                       // Add Y axis
-    const y = d3.scaleLinear()
-                .domain([0, d3.max(lineChartDataset, function(d) { return +d[1]; })])
+    const y_linechart = d3.scaleLinear()
+                .domain([0, d3.max(lineChartDataset, function(d) { return d[1]; })])
                 .range([ height, 0 ]);
     svgLineChart.append("g")
-        .call(d3.axisLeft(y));
+        .call(d3.axisLeft(y_linechart));
 
     // Add the line
     svgLineChart.append("path")
@@ -42,8 +42,8 @@ function drawLineChartSVG(dataset) {
         .attr("stroke", "steelblue")
         .attr("stroke-width", 1.5)
         .attr("d", d3.line()
-                    .x(function(d) { return x(d[0]) })
-                    .y(function(d) { return y(d[1]) })
+                    .x(function(d) { return x_linechart(d[0]) })
+                    .y(function(d) { return y_linechart(d[1]) })
              )
 }
 function ScatterChart() {
@@ -54,7 +54,7 @@ function ScatterChart() {
     const fetchData = async () => {
         const response = await fetch(`${API_URL}/coursesStartDate`);
         responseJson.current = await response.json();
-        setStartDateJson(responseJson.current.map( startDate => [parseInt(startDate[0].split("-")[1]), parseInt(startDate[0].split("-")[2]), parseInt(startDate[1])]));
+        setStartDateJson(responseJson.current);
     }
     var Tooltip = d3.select("#scatterChart")
         .append("div")
@@ -167,7 +167,7 @@ function ScatterChart() {
         //console.log(parseDate(test[0][0]));
         //console.log(scatterChartDataset);
         drawLineChartSVG(startDateJson);
-        drawHeatMap(startDateJson);
+        drawHeatMap(startDateJson.map( startDate => [parseInt(startDate[0].split("-")[1]), parseInt(startDate[0].split("-")[2]), parseInt(startDate[1])]));
         
     },[startDateJson]);
 
