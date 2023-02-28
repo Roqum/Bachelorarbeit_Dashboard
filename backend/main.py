@@ -19,19 +19,8 @@ CORS(app)
 DATABSE_FILENAME = "Top20k.json"
 
 #### Keywords to filter courses for subject #####
-CATEGORY_KEYWORDS = {
-    "IT_KEYWORDS": ["edv", "data", "excel", "programmier", "python", "sql", "c++", "java", "php", "sap", "webentwicklung", "software", "informatik", "entwickler", "CompTIA", "oracle"],
-    "LANGUAGE_KEYWORDS": ["sprach", "a1", "a2" , "b1", "b2", "c1" , "c2", "englisch", "französisch", "deutsch", "italienisch", "spanisch", "japanisch", "chinesisch"],
-    "SPORT_KEYWORDS": ["yoga", "fußball", "fitness", "basketball" , "volleyball", "schwimm" , "athletik", "tanz", "trainer"],
-    "SCIENCE_KEYWORDS": ["pyhsik", "chemie", "biologie", "wissenschaft", "mathe", "forschung"],
-    "MANAGMENT_KEYWORDS": ["steuer", "versicherung", "recht", "lexware", "unternehmen", "datev","finanz", "buisness", "buchaltung", "management", "controlling"],
-    "MEDICINE_KEYWORDS": ["pfleger", "medizin", "artzt", "krank", "gesundheit", "massage"],
-    "MARKETING_KEYWORDS": ["marketing"],
-    "MUSIC_KEYWORDS": ["musik", "singen", "gitarre", "piano", "klavier", "konzert", "musical"],
-    "ART_KEYWORDS": ["kunst", "malen", "malerei", "zeichnen", "atelie"],
-    "MEDIA_KEYWORDS": ["adobe", "photoshop", "video", "videobearbeitung", "bildbearbeitung", "gimp", "multimedia", "blender", "3d"],
-    "UNKNOWN_KEYWORDS": []
-    }
+with open("category_keywords.json", "r") as file:
+    CATEGORY_KEYWORDS = json.load(file)
 ##################################################
 
 def create_courses_categorys_files():
@@ -87,6 +76,14 @@ def create_course_provider_jsonfile():
 def get_courses_start_date():
     try:
         with open("./database/created_files/start_dates_without_years.txt", "r") as filestream:
+            return filestream.read()
+    except FileNotFoundError:
+        return "No Data file found"
+
+@app.route("/generalData", methods=["GET"])
+def get_general_data():
+    try:
+        with open("./database/created_files/general_infos.txt", "r") as filestream:
             return filestream.read()
     except FileNotFoundError:
         return "No Data file found"
@@ -159,17 +156,19 @@ def get_word_count_list():
 @app.route("/runDatabase", methods=["GET"])
 def run_database():
 
+    # creating data file for courses in different categorys
     create_courses_categorys_files()
 
     # creating data file for the map markers
-    markerlocations = [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
+    """ markerlocations = [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
     create_file_from_list(markerlocations, "course_location.txt")
-    del markerlocations
+    del markerlocations """
 
     # creating data file for the provider bar chart
     provider_occurrences_list = [jsonObject["Anbietername"] for jsonObject in get_jsonlist_from_database() if jsonObject["Anbietername"] != ""]
     provider_occurrences_list = count_occurrences_of_each_elemt_in(provider_occurrences_list)
     provider_occurrences_list.sort(key = lambda provider: provider[1], reverse = True)
+    amount_of_provider = len(provider_occurrences_list)
     create_file_from_list(provider_occurrences_list, "course_providers.txt")
     del provider_occurrences_list
 
@@ -190,6 +189,27 @@ def run_database():
     start_dates_list = count_occurrences_of_each_elemt_in(start_dates_list)
     create_file_from_list(start_dates_list, "start_dates_without_years.txt")
     del start_dates_list
+
+    # create file for online courses
+    online_courses = [[jsonObject["Kurstitel"], jsonObject["Kurslink"]] for jsonObject in get_jsonlist_from_database() if (any(word in jsonObject["Kurstitel"].lower() + jsonObject["Schlagwort"].lower() for word in ["webseminar", "onlinekurs"])) or (jsonObject["Longitude"] == "0.000000" and jsonObject["Latitude"] == "0.000000")]
+    amount_of_online_courses = len(online_courses)
+    create_file_from_list(online_courses, "online_courses.txt")
+    del online_courses
+
+    # create data file for amount of courses in city
+    amount_of_courses_in_city = [jsonObject["Kursstadt"] for jsonObject in get_jsonlist_from_database() if jsonObject["Kursstadt"] != ""]
+    amount_of_courses_in_city = count_occurrences_of_each_elemt_in(amount_of_courses_in_city)
+    amount_of_cities = len(amount_of_courses_in_city)
+    create_file_from_list(amount_of_courses_in_city, "amount_of_courses_in_city.txt")
+    del amount_of_courses_in_city
+
+    # create general data file
+    amount_of_courses = len(get_jsonlist_from_database())
+    general_infos = [amount_of_courses, amount_of_cities, amount_of_online_courses, amount_of_provider]   
+    create_file_from_list(general_infos, "general_infos.txt")
+    del general_infos, amount_of_courses, amount_of_cities, amount_of_online_courses, amount_of_provider
+
+
 
     return "All Files are created"
  

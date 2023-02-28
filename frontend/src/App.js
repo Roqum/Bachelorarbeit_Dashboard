@@ -1,9 +1,9 @@
-import React, {Component, useState} from 'react';
+import React, {Component, useEffect, useState} from 'react';
 import { render } from 'react-dom';
 import WordCloud from 'react-d3-cloud';
 import { createRoot } from 'react-dom/client';
 import LeafletMap from './MapComponent';
-import { Card, Button, Grid, Form} from "tabler-react";
+import { Card, Button, Grid, Form, Page} from "tabler-react";
 import ScatterChart from './ScatterChartComponent';
 import BarChart from './BarChart';
 import "tabler-react/dist/Tabler.css";
@@ -20,6 +20,7 @@ var loaded = false;
     
 function App() {
   const [data,setData] = useState([]);
+  const [generalNumbers,setGeneralNumbers] = useState([]);
 
   function setCloudData(dataForCloud) {
     setData(data => data = dataForCloud)
@@ -31,48 +32,112 @@ function App() {
     setCloudData(dataForCloud);
   }
 
-  function loadWordCloudData() {
-    if (!loaded){
+  function fetchWordCloudData() {
       fetch(`${API_URL}/wordsCount`)
       .then( (res) => res.json())
       .then( (data) => transformDataForCloud(data))
       .catch( (err) => console.log("wordcloud error: " + err) );
-      loaded = true;
     }
-    } 
+
+  /* function fetchGeneralData() {
+      fetch(`${API_URL}/generalData`)
+      .then( (res) => {console.log(res.json()); setGeneralNumbers(res.json())})
+      .catch( (err) => console.log("wordcloud error: " + err) );
+  } */
+  const fetchGeneralData = async () => {
+    const response = await fetch(`${API_URL}/generalData`);
+    setGeneralNumbers(await response.json());
+}
+
+  useEffect(() => {
+    fetchWordCloudData()
+    fetchGeneralData()
+  },[]);
 
   return(
-    <div>
+    <div className="fullwidth">
+      <Page.Card >
       <Grid.Row>
+        <Grid.Col>
         <Card>
           <Card.Body className="badge">
             <h1>Website Name</h1>
           </Card.Body>
         </Card>
+        </Grid.Col>
+      </Grid.Row>
+      <Grid.Row>
+        <Grid.Col>
+          <Card className="numberCard">
+            <Card.Header>
+              <Card.Title>
+                Anzahl an Kursen
+              </Card.Title>
+            </Card.Header>
+            <Card.Body>
+              {generalNumbers[0]}
+            </Card.Body>
+          </Card>
+        </Grid.Col>
+        <Grid.Col>
+          <Card className="numberCard">
+            <Card.Header>
+              <Card.Title>
+                Städte mit Kursen
+              </Card.Title>
+            </Card.Header>
+            <Card.Body>
+              {generalNumbers[1]}
+            </Card.Body>
+          </Card>
+        </Grid.Col>
+        <Grid.Col>
+          <Card className="numberCard">
+            <Card.Header>
+              <Card.Title>
+                Oline Kurse
+              </Card.Title>
+            </Card.Header>
+            <Card.Body>
+              {generalNumbers[2]}
+            </Card.Body>
+          </Card>
+        </Grid.Col>
+        <Grid.Col>
+          <Card className="numberCard">
+            <Card.Header>
+              <Card.Title>
+                Anzahl an Anbieter
+              </Card.Title>
+            </Card.Header>
+            <Card.Body>
+              {generalNumbers[3]}
+            </Card.Body>
+          </Card>
+        </Grid.Col>
       </Grid.Row>
       <LeafletMap ></LeafletMap>
       <Grid.Row>
         <Grid.Col>
-        <Card className="ml-10 mr-10 half-page">
-          <Card.Header>
-            <Card.Title>
-              Amount of courses at specific Date 
-            </Card.Title>
-          </Card.Header>
-          <Card.Body>
-            <ScatterChart />
-          </Card.Body>
-        </Card>
+          <Card >
+            <Card.Header>
+              <Card.Title>
+                Amount of courses at specific Date 
+              </Card.Title>
+            </Card.Header>
+            <Card.Body>
+              <ScatterChart />
+            </Card.Body>
+          </Card>
         </Grid.Col>
         <Grid.Col>
-          <Card className="ml-10 mr-10">
+          <Card >
             <Card.Header>
               <Card.Title>
                 Top 100 used Words in course titles
               </Card.Title>
             </Card.Header>
             <Card.Body>
-              {loadWordCloudData()}
               <WordCloud 
                 height={500}
                 width={800}
@@ -91,7 +156,7 @@ function App() {
 
       <Grid.Row>
         <Grid.Col>
-          <Card className="ml-10 mr-10 half-page"> 
+          <Card> 
             <Card.Header>
               <Card.Title>
                 Top course providers
@@ -103,7 +168,7 @@ function App() {
           </Card>
         </Grid.Col>
       </Grid.Row>
-
+    </Page.Card>
     </div>
   );
 }

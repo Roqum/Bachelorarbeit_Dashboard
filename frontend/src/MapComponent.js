@@ -216,7 +216,7 @@ return (
     <Grid.Row>
       <Grid.Col width={3} >
         <Grid.Row className="fullsize" >
-          <Card className="ml-20">
+          <Card>
             <Card.Header className="display-content">
               <Card.Title className="titles">Total Courses</Card.Title>
             </Card.Header>
@@ -225,7 +225,7 @@ return (
             </Card.Body>
           </Card>
 
-          <Card className="ml-20">
+          <Card>
             <Card.Header className="display-content">
               <Card.Title className="titles">Courses in view Area</Card.Title>
             </Card.Header>
@@ -236,8 +236,8 @@ return (
         </Grid.Row>
       </Grid.Col>
       <Grid.Col width={9}>
-        <Card className="mr-20">
-          <Card.Body className="map-container">
+        <Card>
+          <Card.Body>
             <div>
               <Form.InputGroup>
                 <Form.InputGroupPrepend >
