@@ -3,6 +3,8 @@ from flask import Flask, request
 from flask_cors import CORS
 from datetime import datetime, date
 import json_stream
+import functools
+import operator
 import string 
 import json
 import re
@@ -14,9 +16,37 @@ nltk.download('stopwords')
 app = Flask(__name__)
 CORS(app)
 
-
 DATABSE_FILENAME = "Top20k.json"
-#user_to_repos = {}
+
+#### Keywords to filter courses for subject #####
+CATEGORY_KEYWORDS = {
+    "IT_KEYWORDS": ["edv", "data", "excel", "programmier", "python", "sql", "c++", "java", "php", "sap", "webentwicklung", "software", "informatik", "entwickler", "CompTIA", "oracle"],
+    "LANGUAGE_KEYWORDS": ["sprach", "a1", "a2" , "b1", "b2", "c1" , "c2", "englisch", "französisch", "deutsch", "italienisch", "spanisch", "japanisch", "chinesisch"],
+    "SPORT_KEYWORDS": ["yoga", "fußball", "fitness", "basketball" , "volleyball", "schwimm" , "athletik", "tanz", "trainer"],
+    "SCIENCE_KEYWORDS": ["pyhsik", "chemie", "biologie", "wissenschaft", "mathe", "forschung"],
+    "MANAGMENT_KEYWORDS": ["steuer", "versicherung", "recht", "lexware", "unternehmen", "datev","finanz", "buisness", "buchaltung", "management", "controlling"],
+    "MEDICINE_KEYWORDS": ["pfleger", "medizin", "artzt", "krank", "gesundheit", "massage"],
+    "MARKETING_KEYWORDS": ["marketing"],
+    "MUSIC_KEYWORDS": ["musik", "singen", "gitarre", "piano", "klavier", "konzert", "musical"],
+    "ART_KEYWORDS": ["kunst", "malen", "malerei", "zeichnen", "atelie"],
+    "MEDIA_KEYWORDS": ["adobe", "photoshop", "video", "videobearbeitung", "bildbearbeitung", "gimp", "multimedia", "blender", "3d"],
+    "UNKNOWN_KEYWORDS": []
+    }
+##################################################
+
+def create_courses_categorys_files():
+    with open("./database/created_files/courses_category.json", "w") as filestream: 
+        first_comma_ignored = False   
+        filestream.write("{")
+        for keyword_key, keyword_list  in CATEGORY_KEYWORDS.items():
+            filestream.write(",") if first_comma_ignored else {}
+            first_comma_ignored = True
+            filestream.write('"' + keyword_key + '": ')
+            if (keyword_key == "UNKNOWN_KEYWORDS"):
+                filestream.write( json.dumps([[jsonobject['Longitude'], jsonobject['Latitude'], jsonobject['Kurstitel'], jsonobject['Kurslink']] for jsonobject in get_jsonlist_from_database() if all(word not in jsonobject["Kurstitel"].lower() + jsonobject["Schlagwort"].lower() for word in functools.reduce(operator.iconcat, CATEGORY_KEYWORDS.values(), []))]))          
+            else:
+                filestream.write( json.dumps([[jsonobject['Longitude'], jsonobject['Latitude'], jsonobject['Kurstitel'], jsonobject['Kurslink']] for jsonobject in get_jsonlist_from_database() if any(word in jsonobject["Kurstitel"].lower() + jsonobject["Schlagwort"].lower() for word in keyword_list)]))          
+        filestream.write("}")
 
 def get_jsonlist_from_database():
     with open("./database/" + DATABSE_FILENAME, "r", encoding="utf-8") as stream: 
@@ -52,11 +82,11 @@ def create_course_provider_jsonfile():
                 filestream.write(',[' + provider[0] + ',' + str(provider[1]) + ']')
         filestream.write(']')
 
-#### Routings ####
-@app.route("/coursesStartDate", methods=["GET"])
+################## Routings #####################
+@app.route("/coursesStartDateNoYear", methods=["GET"])
 def get_courses_start_date():
     try:
-        with open("./database/created_files/start_dates.txt", "r") as filestream:
+        with open("./database/created_files/start_dates_without_years.txt", "r") as filestream:
             return filestream.read()
     except FileNotFoundError:
         return "No Data file found"
@@ -84,13 +114,13 @@ def get_word_count_of_titel_and_description():
 @app.route("/getLocations", methods=["GET"])
 def get_locations():
     try:
-        with open("./database/created_files/course_location.txt", "r") as filestream:
+        with open("./database/created_files/courses_category.json", "r") as filestream:
                 return filestream.read()
     except FileNotFoundError:
         return "No Data file found"
 
+#################################################
 
-# TODO replace commas inside string with " " 
 def create_file_from_list(list_elem, filename):
     first_comma_ignored = False
     with open("./database/created_files/" + filename, "w") as filestream:
@@ -129,6 +159,8 @@ def get_word_count_list():
 @app.route("/runDatabase", methods=["GET"])
 def run_database():
 
+    create_courses_categorys_files()
+
     # creating data file for the map markers
     markerlocations = [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
     create_file_from_list(markerlocations, "course_location.txt")
@@ -151,6 +183,12 @@ def run_database():
     start_dates_list = count_occurrences_of_each_elemt_in(start_dates_list)
     start_dates_list.sort(key = lambda date_occurrences:  datetime.strptime(date_occurrences[0], '%Y-%m-%d'))
     create_file_from_list(start_dates_list, "start_dates.txt")
+    del start_dates_list
+
+    # create data file for course start date (heatmap and linechart)
+    start_dates_list = [jsonObject["Kursbeginn"][5:] for jsonObject in get_jsonlist_from_database() if jsonObject["Kursbeginn"] != ""]
+    start_dates_list = count_occurrences_of_each_elemt_in(start_dates_list)
+    create_file_from_list(start_dates_list, "start_dates_without_years.txt")
     del start_dates_list
 
     return "All Files are created"

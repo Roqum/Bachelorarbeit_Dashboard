@@ -9,7 +9,7 @@ function BarChart() {
     const [startDateJson, setStartDateJson] = useState(null);
     const responseJson = useRef(null);
     const ammountOfShownProvider = 35;
-    const margin = {top: 20, right: 10, bottom: 150, left: 50},
+    const margin = {top: 20, right: 50, bottom: 150, left: 35},
         width = 1000 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
@@ -37,7 +37,7 @@ function BarChart() {
       }
     var mousemove = function(event, d) {
     Tooltip
-        .html("The exact value of<br>this cell is: " + d[2])
+        .html('"' + d[0] +'" has ' + d[1] + ' Courses')
         .style("left", (d3.pointer(event,this)[0]) + "px")
         .style("top", (d3.pointer(event, this)[1]) + "px")
     }
@@ -46,7 +46,7 @@ function BarChart() {
         .style("opacity", 0)
     d3.select(this)
         .style("stroke", "none")
-        .style("opacity", 0.8)
+        .style("opacity", 1)
     }
 
     function wrap(text, width) {
@@ -89,8 +89,8 @@ function BarChart() {
             .selectAll(".tick text")
             .call(wrap, margin.bottom)
             .style("font-size", 7)
-            .style("text-anchor", "end")
-            .attr("transform", "translate(-10, 3) rotate(-65)");
+            .style("text-anchor", "start")
+            .attr("transform", "translate(8, 3) rotate(50)");
             
         const y = d3.scaleLinear()
             .domain([0,dataset[0][1]])
@@ -111,7 +111,7 @@ function BarChart() {
                 .attr("y", function (d) { return y(d[1]); } )
                 .attr("width", x.bandwidth() )
                 .attr("height", function (d) {return height - y(d[1]); })
-                .attr("fill", "#69f")
+                .attr("fill", "#58f")
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)

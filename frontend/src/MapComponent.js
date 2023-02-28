@@ -49,6 +49,20 @@ function LeafletMap() {
 
       return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
   }})
+  const courseCategoryColors = { 
+    "IT_KEYWORDS": "#154360",
+    "LANGUAGE_KEYWORDS": "#7FFFD4",
+    "SPORT_KEYWORDS": "#FF0000",
+    "SCIENCE_KEYWORDS": "#34568B",
+    "MANAGMENT_KEYWORDS": "#ECF0F1",
+    "MEDICINE_KEYWORDS": "#008000",
+    "MARKETING_KEYWORDS": "#8E44AD",
+    "MUSIC_KEYWORDS": "#DFFF00",
+    "ART_KEYWORDS": "#2C3E50",
+    "MEDIA_KEYWORDS": "#FF00FF",
+    "UNKNOWN_KEYWORDS": "#808080"
+    
+  }
   const currentPositionIcon = L.divIcon({
     className: 'map-marker',
     iconSize: null,
@@ -62,15 +76,30 @@ function LeafletMap() {
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   });
 
-
-  const createMarkers = (data) => data.forEach(markerData => {
-    const marker = L.marker([parseFloat(markerData[1]),parseFloat(markerData[0])], {icon: markerIcon}).bindPopup(markerData[2] + "<br> <a href=" + markerData[3] + " target='_blank'>" + markerData[3] + "</a>")
-    markerGroup.addLayer(marker);     
-  })
-
+  function createCourseCategoryIcon(categoryName)
+  {
+    var color = courseCategoryColors[categoryName];
+    const coursesIcon = L.divIcon({
+      className: 'map-marker',
+      iconSize: null,
+      html:'<div class="courses-icon" style="background:' + color + '"></div>'
+    }); 
+    return coursesIcon
+  }
+  function createMarkers(data) {
+    console.log(Object.keys(data));
+    Object.keys(data).forEach(category => {
+      console.log(category);
+      data[category].forEach(markerData => {
+      const marker = L.marker([parseFloat(markerData[1]),parseFloat(markerData[0])], {icon: createCourseCategoryIcon(category)}).bindPopup(markerData[2] + "<br> <a href=" + markerData[3] + " target='_blank'>" + markerData[3] + "</a>")
+      markerGroup.addLayer(marker);
+    })})
+  }
+ 
   const fetchData = async () => {
     const response = await fetch(`${API_URL}/getLocations`);
     responseJson.current = await response.json();
+    console.log(typeof responseJson.current)
     
     if (currentPositon_lat != 0 && currentPositon_long != 0) {
       mapInstance.createPane("locationMarker");
@@ -78,7 +107,7 @@ function LeafletMap() {
       var currentPositionMarker = L.marker([currentPositon_lat, currentPositon_long],{icon: currentPositionIcon, title: "current location", pane:"locationMarker"}).bindPopup("Current Location");
       currentPositionMarker.addTo(mapInstance);
     }
-    setMarkerJson(responseJson.current.map(([lat, long, course, link]) => [parseFloat(lat), parseFloat(long), course, link]));
+    setMarkerJson(responseJson.current);
     createMarkers(responseJson.current);
     mapInstance.fireEvent("moveend");
     setTotalMarkersCount(responseJson.current.length);
@@ -110,7 +139,26 @@ useEffect(() => {
       //}
     });
     fetchData();
-    mapInstance.addLayer(markerGroup);
+      mapInstance.addLayer(markerGroup);
+      var legend = L.control({ position: "bottomright" });
+      legend.onAdd = function(mapInstance) {
+      var div = L.DomUtil.create("div", "legend");
+      div.innerHTML += "<h4>Kategorien</h4>";
+      div.innerHTML += '<i style="background: #154360"></i><span>IT/Informatik</span><br>';
+      div.innerHTML += '<i style="background: #FF00FF"></i><span>Multimeadia</span><br>';
+      div.innerHTML += '<i style="background: #7FFFD4"></i><span>Sprache</span><br>';
+      div.innerHTML += '<i style="background: #FF0000"></i><span>Sport</span><br>';
+      div.innerHTML += '<i style="background: #34568B"></i><span>Wissenschaft</span><br>';
+      div.innerHTML += '<i style="background: #ECF0F1"></i><span>Management</span><br>';
+      div.innerHTML += '<i style="background: #008000"></i><span>Medizin</span><br>';
+      div.innerHTML += '<i style="background: #8E44AD"></i><span>Marketing</span><br>';
+      div.innerHTML += '<i style="background: #DFFF00"></i><span>Musik</span><br>';
+      div.innerHTML += '<i style="background: #2C3E50"></i><span>Kunst</span><br>';
+      div.innerHTML += '<i style="background: #808080"></i><span>Unbestimmt</span><br>';
+      return div;
+    };
+    
+    legend.addTo(mapInstance);
   }
 }, [mapInstance]);
 
