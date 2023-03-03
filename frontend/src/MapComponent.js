@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { Card, Button, Grid, Form} from "tabler-react";
+import { Card, Button, Grid, Form, ProgressCard} from "tabler-react";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
@@ -212,33 +212,19 @@ function getVisibleMarkersCount() {
 
 
 return (
-  <div>
     <Grid.Row>
-      <Grid.Col width={3} >
-        <Grid.Row className="fullsize" >
-          <Card>
-            <Card.Header className="display-content">
-              <Card.Title className="titles">Total Courses</Card.Title>
-            </Card.Header>
-            <Card.Body className="card-body2 display-content">
-              <h1 className='numbers'>{totalMarkersCount}</h1> 
-            </Card.Body>
-          </Card>
-
-          <Card>
-            <Card.Header className="display-content">
-              <Card.Title className="titles">Courses in view Area</Card.Title>
-            </Card.Header>
-            <Card.Body className="card-body2 display-content">
-              <h1 className='numbers'>{visibleMarkersCount}</h1> 
-            </Card.Body>
-          </Card>
-        </Grid.Row>
+      <Grid.Col width={3} className="map-component">
+            <ProgressCard 
+              className="progressCard "
+              header="Courses in view Area"
+              progressColor="blue"
+              progressWidth={100}
+              content={visibleMarkersCount}>         
+            </ProgressCard>      
       </Grid.Col>
       <Grid.Col width={9}>
         <Card>
-          <Card.Body>
-            <div>
+          <Card.Body>            
               <Form.InputGroup>
                 <Form.InputGroupPrepend >
                   <Button RootComponent="a" color="primary" type="submit">
@@ -250,12 +236,10 @@ return (
               <br></br>
               <div id="map">
               </div>
-            </div>
           </Card.Body>
         </Card>
       </Grid.Col>
     </Grid.Row>
-  </div>
 );
 
 } 

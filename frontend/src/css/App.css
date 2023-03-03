@@ -43,3 +43,21 @@
   min-width: 50%;
   min-height: 400px;
 }
+.statsCard div {
+  padding-top: 10px;
+}
+.progress{
+  height: 3px;
+}
+.progressCard .h5 {
+  padding-bottom: 10px;
+  font-size: 14px;
+  overflow:hidden;
+  white-space:nowrap
+}
+.col {
+  padding: 5px;
+}
+.card {
+  margin-bottom: 0px;
+}
