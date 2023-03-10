@@ -6,12 +6,41 @@
 }
 .badge {
   display: flex;
+  justify-content: space-between;
   background-color: cornflowerblue;
   width: 100%;
-  height: 30px;
+  height: 40px;
 }
-#map {
-  height: 700px;
+.badge-bottom
+{
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  background-color: cornflowerblue;
+  width: 100%;
+  height: 40px;
+}
+.loader-symbol::before {
+  width: 10rem;
+  height: 10rem;
+  border-top-width: 8px;
+  border-right-width: 8px;
+  border-bottom-width: 8px;
+  border-left-width: 8px;
+}
+.loader-symbol::after {
+  width: 10rem;
+  height: 10rem;
+  border-top-width: 8px;
+  border-right-width: 8px;
+  border-bottom-width: 8px;
+  border-left-width: 8px;
+}
+.loader-symbol{
+  position: fixed;
+  left: 45% ;
+  top: 40% ;
+  z-index:999;
 }
 .fullsize {
   height: 100%;
@@ -19,7 +48,6 @@
 .fullwidth2 {
   width: 100%;
 }
-
 .fullwidth {
   width: 100%;
 }

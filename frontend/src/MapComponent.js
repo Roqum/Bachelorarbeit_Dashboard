@@ -7,6 +7,9 @@ import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import "./css/MapComponent.css";
+import * as courseCategoryColors from "./assets/categoryColors.json";
+import * as displayCategoryNames from "./assets/categoryDisplayNames.json"
+
 
 
 const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050"
@@ -49,29 +52,12 @@ function LeafletMap() {
 
       return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
   }})
-  const courseCategoryColors = { 
-    "IT_KEYWORDS": "#154360",
-    "LANGUAGE_KEYWORDS": "#7FFFD4",
-    "SPORT_KEYWORDS": "#FF0000",
-    "SCIENCE_KEYWORDS": "#34568B",
-    "MANAGMENT_KEYWORDS": "#ECF0F1",
-    "MEDICINE_KEYWORDS": "#008000",
-    "MARKETING_KEYWORDS": "#8E44AD",
-    "MUSIC_KEYWORDS": "#DFFF00",
-    "ART_KEYWORDS": "#2C3E50",
-    "MEDIA_KEYWORDS": "#FF00FF",
-    "UNKNOWN_KEYWORDS": "#808080"
-    
-  }
   const currentPositionIcon = L.divIcon({
     className: 'map-marker',
     iconSize: null,
     html:'<div class="current-position-icon"></div>'
   });
-  const markerIcon = L.icon({
-    iconUrl: '/markerIcon.png',
-    iconSize: [13,16]
-  });
+
   tileRef.current = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   });
@@ -87,9 +73,7 @@ function LeafletMap() {
     return coursesIcon
   }
   function createMarkers(data) {
-    console.log(Object.keys(data));
     Object.keys(data).forEach(category => {
-      console.log(category);
       data[category].forEach(markerData => {
       const marker = L.marker([parseFloat(markerData[1]),parseFloat(markerData[0])], {icon: createCourseCategoryIcon(category)}).bindPopup(markerData[2] + "<br> <a href=" + markerData[3] + " target='_blank'>" + markerData[3] + "</a>")
       markerGroup.addLayer(marker);
@@ -99,7 +83,6 @@ function LeafletMap() {
   const fetchData = async () => {
     const response = await fetch(`${API_URL}/getLocations`);
     responseJson.current = await response.json();
-    console.log(typeof responseJson.current)
     
     if (currentPositon_lat != 0 && currentPositon_long != 0) {
       mapInstance.createPane("locationMarker");
@@ -144,17 +127,9 @@ useEffect(() => {
       legend.onAdd = function(mapInstance) {
       var div = L.DomUtil.create("div", "legend");
       div.innerHTML += "<h4>Kategorien</h4>";
-      div.innerHTML += '<i style="background: #154360"></i><span>IT/Informatik</span><br>';
-      div.innerHTML += '<i style="background: #FF00FF"></i><span>Multimeadia</span><br>';
-      div.innerHTML += '<i style="background: #7FFFD4"></i><span>Sprache</span><br>';
-      div.innerHTML += '<i style="background: #FF0000"></i><span>Sport</span><br>';
-      div.innerHTML += '<i style="background: #34568B"></i><span>Wissenschaft</span><br>';
-      div.innerHTML += '<i style="background: #ECF0F1"></i><span>Management</span><br>';
-      div.innerHTML += '<i style="background: #008000"></i><span>Medizin</span><br>';
-      div.innerHTML += '<i style="background: #8E44AD"></i><span>Marketing</span><br>';
-      div.innerHTML += '<i style="background: #DFFF00"></i><span>Musik</span><br>';
-      div.innerHTML += '<i style="background: #2C3E50"></i><span>Kunst</span><br>';
-      div.innerHTML += '<i style="background: #808080"></i><span>Unbestimmt</span><br>';
+        Object.keys(displayCategoryNames).forEach( key => {
+          div.innerHTML += '<i style="background: '+ courseCategoryColors[key] +' "></i><span>'+ displayCategoryNames[key] +'</span><br>';
+        });
       return div;
     };
     
@@ -179,19 +154,14 @@ const filterData = (inputField) => {
 
 if (mapInstance != null) {
   mapInstance.on('moveend', function() {
-    // Construct an empty list to fill with onscreen markers.
     setVisibleMarkersCount(0);
     var visibleMarkerCountTemp = 0;
-    // Get the map bounds - the top-left and bottom-right locations.
     var bounds = mapInstance.getBounds();
 
-    // For each marker, consider whether it is currently visible by comparing
-    // with the current map bounds.
     markerGroup.eachLayer(function(marker) {
         if (marker instanceof L.Marker && bounds.contains(marker.getLatLng())) {
           visibleMarkerCountTemp += 1;
         }
-      
     });
     setVisibleMarkersCount(visibleMarkerCountTemp);
   })
@@ -201,45 +171,34 @@ function getVisibleMarkersCount() {
   return visibleMarkersCount;
 }
 
-/*function countVisibleMarkers() {
-  var visibleMarkerCount = 0;
-  map.eachLayer(function(layer) {
-      if ((layer instanceof L.Marker) && (map.getBounds().contains(layer.getLatLng()))) {
-        visibleMarkerCount += 1;
-      };
-  });
-}*/
-
-
 return (
-    <Grid.Row>
-      <Grid.Col width={3} className="map-component">
-            <ProgressCard 
-              className="progressCard "
-              header="Courses in view Area"
-              progressColor="blue"
-              progressWidth={100}
-              content={visibleMarkersCount}>         
-            </ProgressCard>      
-      </Grid.Col>
-      <Grid.Col width={9}>
-        <Card>
-          <Card.Body>            
-              <Form.InputGroup>
-                <Form.InputGroupPrepend >
-                  <Button RootComponent="a" color="primary" type="submit">
-                    Go!
-                  </Button>
-                </Form.InputGroupPrepend>
-                <Form.Input placeholder="Filter for..." onChange={filterData} />
-              </Form.InputGroup>
-              <br></br>
-              <div id="map">
-              </div>
-          </Card.Body>
-        </Card>
-      </Grid.Col>
-    </Grid.Row>
+
+      <><Grid.Col width={2} className="map-component">
+    <ProgressCard
+      className="progressCard "
+      header="Courses in view Area"
+      progressColor="blue"
+      progressWidth={100}
+      content={visibleMarkersCount}>
+    </ProgressCard>
+  </Grid.Col><Grid.Col width={6}>
+      <Card>
+        <Card.Body>
+          <Form.InputGroup>
+            <Form.InputGroupPrepend>
+              <Button RootComponent="a" color="primary" type="submit">
+                Go!
+              </Button>
+            </Form.InputGroupPrepend>
+            <Form.Input placeholder="Filter for..." onChange={filterData} />
+          </Form.InputGroup>
+          <br></br>
+          <div id="map">
+          </div>
+        </Card.Body>
+      </Card>
+    </Grid.Col></>
+
 );
 
 } 

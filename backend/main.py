@@ -73,9 +73,17 @@ def create_course_provider_jsonfile():
 
 ################## Routings #####################
 @app.route("/coursesStartDateNoYear", methods=["GET"])
-def get_courses_start_date():
+def get_courses_start_date_no_year():
     try:
         with open("./database/created_files/start_dates_without_years.txt", "r") as filestream:
+            return filestream.read()
+    except FileNotFoundError:
+        return "No Data file found"
+
+@app.route("/coursesStartDate", methods=["GET"])
+def get_courses_start_date():
+    try:
+        with open("./database/created_files/start_dates_without_day.txt", "r") as filestream:
             return filestream.read()
     except FileNotFoundError:
         return "No Data file found"
@@ -112,6 +120,14 @@ def get_word_count_of_titel_and_description():
 def get_locations():
     try:
         with open("./database/created_files/courses_category.json", "r") as filestream:
+                return filestream.read()
+    except FileNotFoundError:
+        return "No Data file found"
+    
+@app.route("/getCoursesInCity", methods=["GET"])
+def get_courses_in_cities():
+    try:
+        with open("./database/created_files/amount_of_courses_in_city.txt", "r") as filestream:
                 return filestream.read()
     except FileNotFoundError:
         return "No Data file found"
@@ -153,6 +169,16 @@ def get_word_count_list():
 
     return [list(tuple_elem) for tuple_elem in word_occurrences.most_common(100)]
 
+def dividedInYears(start_dates_list):
+    courses_per_month = dict()
+    for date_occurance in start_dates_list:
+        year = date_occurance[0][:4]
+        if (year in courses_per_month):
+            courses_per_month[year].append(date_occurance)
+        else:
+            courses_per_month[year] = [date_occurance]
+    return [list(tuple_elem) for tuple_elem in courses_per_month.items()]
+
 @app.route("/runDatabase", methods=["GET"])
 def run_database():
 
@@ -178,10 +204,10 @@ def run_database():
     del word_count_list
 
     # create data file for course start date (heatmap and linechart)
-    start_dates_list = [jsonObject["Kursbeginn"] for jsonObject in get_jsonlist_from_database() if jsonObject["Kursbeginn"] != ""]
+    start_dates_list = [jsonObject["Kursbeginn"][:7] for jsonObject in get_jsonlist_from_database() if jsonObject["Kursbeginn"] != ""]
     start_dates_list = count_occurrences_of_each_elemt_in(start_dates_list)
-    start_dates_list.sort(key = lambda date_occurrences:  datetime.strptime(date_occurrences[0], '%Y-%m-%d'))
-    create_file_from_list(start_dates_list, "start_dates.txt")
+    start_dates_list = dividedInYears(start_dates_list)
+    create_file_from_list(start_dates_list, "start_dates_without_day.txt")
     del start_dates_list
 
     # create data file for course start date (heatmap and linechart)
@@ -199,6 +225,7 @@ def run_database():
     # create data file for amount of courses in city
     amount_of_courses_in_city = [jsonObject["Kursstadt"] for jsonObject in get_jsonlist_from_database() if jsonObject["Kursstadt"] != ""]
     amount_of_courses_in_city = count_occurrences_of_each_elemt_in(amount_of_courses_in_city)
+    amount_of_courses_in_city.sort(key = lambda city: int(city[1]), reverse = True)
     amount_of_cities = len(amount_of_courses_in_city)
     create_file_from_list(amount_of_courses_in_city, "amount_of_courses_in_city.txt")
     del amount_of_courses_in_city

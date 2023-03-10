@@ -3,10 +3,13 @@ import { render } from 'react-dom';
 import WordCloud from 'react-d3-cloud';
 import { createRoot } from 'react-dom/client';
 import LeafletMap from './MapComponent';
-import { Card, Button, Grid, Form, Page, ProgressCard, StatsCard} from "tabler-react";
+import { Card, Button, Grid, Form, Page, ProgressCard, Loader} from "tabler-react";
 import { BuildingCommunity } from 'tabler-icons-react';
 import ScatterChart from './ScatterChartComponent';
+import CategoryBarChart from './CategoryBarChart';
 import BarChart from './BarChart';
+import CoursesPerMonthBarChart from './CoursesPerMonthBarChart';
+import CitiesBarChart from './CitiesBarChart';
 import "tabler-react/dist/Tabler.css";
 import './css/App.css';
 
@@ -22,6 +25,7 @@ var loaded = false;
 function App() {
   const [data,setData] = useState([]);
   const [generalNumbers,setGeneralNumbers] = useState([]);
+  const [loaderSymbol,setLoaderSymbol] = useState(null);
 
   function setCloudData(dataForCloud) {
     setData(data => data = dataForCloud)
@@ -55,20 +59,27 @@ function App() {
     fetchGeneralData()
   },[]);
 
+  function loadData() {
+    if(loaderSymbol== null) {
+      setLoaderSymbol(<Loader className="loader-symbol" checked="true"></Loader>);
+      fetch(`${API_URL}/runDatabase`).then(
+        result => {
+          setLoaderSymbol(null);
+          window.location.reload(true);
+        }
+      );
+      console.log("hi");
+    }
+  }
+
+
   return(
     <div className="fullwidth">
-
-      <Grid.Row>
-        <Grid.Col>
-        <Card>
-          <Card.Body className="badge">
-            <h1>Website Name</h1>
-          </Card.Body>
-        </Card>
-        </Grid.Col>
-      </Grid.Row>
-
-      <Page.Content >
+      <div className="badge">
+        <h1>Website Name</h1>
+        {loaderSymbol}
+        <button onClick={loadData} role="button">Datensatz laden</button>
+      </div>
         <Grid.Row>
           <Grid.Col>
             <ProgressCard 
@@ -108,13 +119,27 @@ function App() {
             
           </Grid.Col>
         </Grid.Row>
+        <Grid.Row>
           <LeafletMap ></LeafletMap>
+          <Grid.Col>
+            <Card> 
+              <Card.Header>
+                <Card.Title>
+                  Kurse pro Kategorie
+                </Card.Title>
+              </Card.Header>
+              <Card.Body>
+                <CategoryBarChart />
+              </Card.Body>
+            </Card>
+          </Grid.Col>
+        </Grid.Row>
         <Grid.Row>
           <Grid.Col>
             <Card >
               <Card.Header>
                 <Card.Title>
-                  Amount of courses at specific Date 
+                  Anzahl der Kurse am Datum 
                 </Card.Title>
               </Card.Header>
               <Card.Body>
@@ -126,13 +151,13 @@ function App() {
             <Card >
               <Card.Header>
                 <Card.Title>
-                  Top 100 used Words in course titles
+                  Meist genutzen Wörter
                 </Card.Title>
               </Card.Header>
               <Card.Body>
                 <WordCloud 
-                  height={500}
-                  width={800}
+                  height={600}
+                  width={600}
                   fontSize={(word) => (word.value)/8}
                   spiral="archimedean"
                   rotate={() => ((Math.round(Math.random() * 100 ) % 2) * 90)}
@@ -144,14 +169,11 @@ function App() {
               </Card.Body>
             </Card>
           </Grid.Col>
-        </Grid.Row>
-
-        <Grid.Row>
           <Grid.Col>
             <Card> 
               <Card.Header>
                 <Card.Title>
-                  Top course providers
+                  Meisten Anbieter
                 </Card.Title>
               </Card.Header>
               <Card.Body>
@@ -159,8 +181,37 @@ function App() {
               </Card.Body>
             </Card>
           </Grid.Col>
-        </Grid.Row>
-      </Page.Content>
+          </Grid.Row>
+          <Grid.Row>
+            <Grid.Col>
+              <Card> 
+                <Card.Header>
+                  <Card.Title>
+                    Kurse pro Monat
+                  </Card.Title>
+                </Card.Header>
+                <Card.Body>
+                  <CoursesPerMonthBarChart />
+                </Card.Body>
+              </Card>
+            </Grid.Col>
+            <Grid.Col>
+              <Card> 
+                <Card.Header>
+                  <Card.Title>
+                    Anzahl an Kursen in Städten
+                  </Card.Title>
+                </Card.Header>
+                <Card.Body>
+                  <CitiesBarChart />
+                </Card.Body>
+              </Card>
+            </Grid.Col>
+          </Grid.Row>
+        <div className="badge-bottom">
+
+
+      </div>
     </div>
   );
 }

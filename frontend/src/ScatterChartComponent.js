@@ -13,42 +13,7 @@ const margin = {top: 10, right: 10, bottom: 50, left: 50},
     legendMarginTop = 25,
     legendBarWidh = 100,
     legendBarHeight = 10;
-const parseDate = d3.timeParse('%Y-%m-%d');
 
-/* function drawLineChartSVG(dataset) {
-    const lineChartDataset = dataset.filter(rawdata => Date.parse("01-01-2030") > Date.parse(rawdata[0])).map(data => [parseDate(data[0]), parseFloat(data[1])])
-    var svgLineChart = d3.select("#lineChart")
-                        .append("svg")
-                        .attr("width", width + margin.left + margin.right)
-                        .attr("height", height + margin.top + margin.bottom)
-                        .append("g")
-                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-    
-    const x_linechart = d3.scaleTime()
-                .domain(d3.extent(lineChartDataset, function(d) {  return d[0] }))
-                .range([ 0, width ]);
-    svgLineChart.append("g")
-        .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(x_linechart));
-                  
-                      // Add Y axis
-    const y_linechart = d3.scaleLinear()
-                .domain([0, d3.max(lineChartDataset, function(d) { return d[1]; })])
-                .range([ height, 0 ]);
-    svgLineChart.append("g")
-        .call(d3.axisLeft(y_linechart));
-
-    // Add the line
-    svgLineChart.append("path")
-        .datum(lineChartDataset)
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
-        .attr("d", d3.line()
-                    .x(function(d) { return x_linechart(d[0]) })
-                    .y(function(d) { return y_linechart(d[1]) })
-             )
-} */
 function ScatterChart() {
 
     const [startDateJson, setStartDateJson] = useState(null);
@@ -78,7 +43,7 @@ function ScatterChart() {
       }
     var mousemove = function(event, d) {
     Tooltip
-        .html("At " + d[1] + ". "+  axisLabels[d[0] - 1] +" are " + d[2] + " Courses available")
+        .html("Am " + d[1] + ". "+  axisLabels[d[0] - 1] +" finden " + d[2] + " Kurse statt")
         .style("left", (d3.pointer(event,this)[0]) + "px")
         .style("top", (d3.pointer(event, this)[1]) + "px")
     }
@@ -91,7 +56,6 @@ function ScatterChart() {
     }
 
     function drawHeatMap(dataset) {
-        console.log(dataset);
         const svg = d3.select("#scatterChart")
         .append("svg")
         .attr("viewBox",`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
@@ -212,17 +176,13 @@ function ScatterChart() {
 
     useEffect(() => {
         if (!startDateJson) return;
-        //drawLineChartSVG(startDateJson);
         drawHeatMap(startDateJson.map( startDate => [parseInt(startDate[0].split("-")[0]), parseInt(startDate[0].split("-")[1]), parseInt(startDate[1])]));
-        
     },[startDateJson]);
 
 
     return (<div>
     <div id="scatterChart" className="fullwidth">
     </div>
-    {/* <div id="lineChart" className="fullwidth">
-    </div> */}
     </div>);
 }
 
