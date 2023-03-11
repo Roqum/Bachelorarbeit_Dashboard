@@ -5,7 +5,7 @@ const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050"
 
 function CitiesBarChart() {
 
-    const [startDateJson, setStartDateJson] = useState(null);
+    const [fetchedDataset, setFetchedDataset] = useState(null);
     const responseJson = useRef(null);
     const ammountOfShownCties = 20;
     const margin = {top: 20, right: 50, bottom: 130, left: 35},
@@ -15,7 +15,9 @@ function CitiesBarChart() {
     const fetchData = async () => {
         const response = await fetch(`${API_URL}/getCoursesInCity`);
         responseJson.current = await response.json();
-        setStartDateJson(responseJson.current.map(listElem => [listElem[0], parseFloat(listElem[1])]));
+
+        // map the fetched file in valid format for the charts 
+        setFetchedDataset(responseJson.current.map(listElem => [listElem[0], parseFloat(listElem[1])]));
     }
     var Tooltip = d3.select("#citiesBarChart")
         .append("div")
@@ -100,11 +102,6 @@ function CitiesBarChart() {
         citiesBarChartSvg.append("g")
             .call(d3.axisLeft(y));
 
-        const dataValue = d3.scaleLinear()
-            .range([0,1000])
-            .domain([0, 100]);
-        
-
         citiesBarChartSvg.selectAll()
             .data(dataset)
             .enter()
@@ -117,7 +114,6 @@ function CitiesBarChart() {
             .on("mouseover", mouseover)
             .on("mousemove", mousemove)
             .on("mouseleave", mouseleave)
-
     }
 
     useEffect(() => {
@@ -125,10 +121,10 @@ function CitiesBarChart() {
       },[]);
 
     useEffect(() => {
-        if (!startDateJson) return;
-        drawHeatMap(startDateJson.slice(0, ammountOfShownCties));
+        if (!fetchedDataset) return;
+        drawHeatMap(fetchedDataset.slice(0, ammountOfShownCties));
         
-    },[startDateJson]);
+    },[fetchedDataset]);
 
     return (<div id="citiesBarChart" className="fullwidth">
 

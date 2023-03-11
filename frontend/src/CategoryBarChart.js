@@ -1,24 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import "./css/BarChart.css"
 import * as categoryColors from "./assets/categoryColors.json";
 import * as displayCategoryNames from "./assets/categoryDisplayNames.json"
+
 const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050"
 
 function CategoryBarChart() {
 
     const [startDateJson, setStartDateJson] = useState(null);
     const responseJson = useRef(null);
-    const ammountOfShownProvider = 35;
     const margin = {top: 20, right: 20, bottom: 50, left: 40},
         width = 600 - margin.left - margin.right,
-        height = 600 - margin.top - margin.bottom;
+        height = 700 - margin.top - margin.bottom;
 
     const fetchData = async () => {
         const response = await fetch(`${API_URL}/getLocations`);
         responseJson.current = await response.json();
+
+        // map the fetched json file in valid format for the charts 
         var jsonAsList = Object.keys(responseJson.current).map( key => [key, responseJson.current[key].length]);
         jsonAsList = jsonAsList.sort((a, b) => b[1]- a[1]);
+
         setStartDateJson(jsonAsList);
     }
 
@@ -105,7 +107,6 @@ function CategoryBarChart() {
             .range([height, 0]);
         svgCategoryBarChart.append("g")
             .call(d3.axisLeft(yScale));
-
 
         svgCategoryBarChart.selectAll()
             .data(dataset)

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import "./css/ScatterChartComonent.css"
+import "./css/CoursesPerDayHeatMap.css"
 
 const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050"
 
@@ -14,17 +14,20 @@ const margin = {top: 10, right: 10, bottom: 50, left: 50},
     legendBarWidh = 100,
     legendBarHeight = 10;
 
-function ScatterChart() {
-
-    const [startDateJson, setStartDateJson] = useState(null);
+function HeatMap() {
+    const [fetchedDataset, setFetchedDataset] = useState(null);
     const responseJson = useRef(null);
 
     const fetchData = async () => {
         const response = await fetch(`${API_URL}/coursesStartDateNoYear`);
         responseJson.current = await response.json();
-        setStartDateJson(responseJson.current);
+
+        // maps the fetched file in valid format for the charts 
+        setFetchedDataset(responseJson.current.map( startDate => [parseInt(startDate[0].split("-")[0]), parseInt(startDate[0].split("-")[1]), parseInt(startDate[1])]));
     }
-    var Tooltip = d3.select("#scatterChart")
+
+    /**************************Animation on mouseover*******************************/
+    var Tooltip = d3.select("#coursesPerDayHeatmap")
         .append("div")
         .style("opacity", 0)
         .attr("class", "tooltip")
@@ -54,13 +57,14 @@ function ScatterChart() {
         .style("stroke", "none")
         .style("opacity", 0.8)
     }
+    /********************************************************************************/
 
     function drawHeatMap(dataset) {
-        const svg = d3.select("#scatterChart")
-        .append("svg")
-        .attr("viewBox",`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
-        .append("g")
-        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+        const svg = d3.select("#coursesPerDayHeatmap")
+            .append("svg")
+            .attr("viewBox",`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+            .append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
         // draw legend of heatmap
         var defs = svg.append("defs");
@@ -101,6 +105,14 @@ function ScatterChart() {
                                     return function (d) { return valueToColor(d[2]); }
                         })
 
+        // Y Axies label
+        svg.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('transform', 'translate(-30,' + height/2 + ')rotate(-90)')
+            .style('font-family', 'Helvetica')
+            .style('font-size', 12)
+            .text('Day in Month');
+
         // draw the heatmap
         const x = d3.scaleBand()
             .domain(xAxisValues)
@@ -116,25 +128,8 @@ function ScatterChart() {
             .range([ height, 0])
             .padding(0.05);
         svg.append("g")
-            .call(d3.axisLeft(y));
-
-/*         // X label
-        svg.append('text')
-            .attr('x', width/2)
-            .attr('y', height + 35)
-            .attr('text-anchor', 'middle')
-            .style('font-family', 'Helvetica')
-            .style('font-size', 12)
-            .text('Month'); */
+            .call(d3.axisLeft(y));        
         
-        // Y label
-        svg.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('transform', 'translate(-30,' + height/2 + ')rotate(-90)')
-            .style('font-family', 'Helvetica')
-            .style('font-size', 12)
-            .text('Day in Month');
-
         const valueToColor = d3.scaleLinear()
             .range(["#F8F9FF", "#42A5F5","#0D47A1"])
             .domain([0, d3.max(dataset, function(d) { return d[2]; }) / 5, d3.max(dataset, function(d) { return d[2]; })]);
@@ -175,15 +170,15 @@ function ScatterChart() {
       },[]);
 
     useEffect(() => {
-        if (!startDateJson) return;
-        drawHeatMap(startDateJson.map( startDate => [parseInt(startDate[0].split("-")[0]), parseInt(startDate[0].split("-")[1]), parseInt(startDate[1])]));
-    },[startDateJson]);
+        if (!fetchedDataset) return;
+        drawHeatMap(fetchedDataset);
+    },[fetchedDataset]);
 
 
-    return (<div>
-    <div id="scatterChart" className="fullwidth">
-    </div>
-    </div>);
+    return (
+        <div id="coursesPerDayHeatmap" className="fullwidth">
+        </div>
+    );
 }
 
-export default ScatterChart;
+export default HeatMap;

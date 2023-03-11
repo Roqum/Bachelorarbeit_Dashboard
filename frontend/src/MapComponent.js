@@ -15,12 +15,11 @@ import * as displayCategoryNames from "./assets/categoryDisplayNames.json"
 const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050"
 
 function LeafletMap() {
-  const [markerGroup, setMarkerGroup] = useState(null);
+  const [markerClusterGroup, setMarkerClusterGroup] = useState(null);
   const [mapInstance, setMapInstance] = useState(null);
   const [markerJson, setMarkerJson] = useState(null);
   const [visibleMarkersCount, setVisibleMarkersCount] = useState(0);
-  const [totalMarkersCount, setTotalMarkersCount] = useState(0);
-  // Map refs:
+
   const mapRef = useRef(null);
   const tileRef = useRef(null);
   const markersRef = useRef(null);
@@ -31,6 +30,7 @@ function LeafletMap() {
   let center_lat = 50;
   let center_long = 12;
   let center_zoom = 5.5;
+
   markersRef.current = L.markerClusterGroup({
     chunkedLoading: true,
     iconCreateFunction: function (cluster) {
@@ -52,6 +52,8 @@ function LeafletMap() {
 
       return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
   }})
+
+  // create icon for current location
   const currentPositionIcon = L.divIcon({
     className: 'map-marker',
     iconSize: null,
@@ -72,11 +74,15 @@ function LeafletMap() {
     }); 
     return coursesIcon
   }
+
+
   function createMarkers(data) {
     Object.keys(data).forEach(category => {
       data[category].forEach(markerData => {
-      const marker = L.marker([parseFloat(markerData[1]),parseFloat(markerData[0])], {icon: createCourseCategoryIcon(category)}).bindPopup(markerData[2] + "<br> <a href=" + markerData[3] + " target='_blank'>" + markerData[3] + "</a>")
-      markerGroup.addLayer(marker);
+        if (parseFloat(markerData[1]) != 0 && parseFloat(markerData[0]) != 0 ) {
+          const marker = L.marker([parseFloat(markerData[1]),parseFloat(markerData[0])], {icon: createCourseCategoryIcon(category)}).bindPopup(markerData[2] + "<br> <a href=" + markerData[3] + " target='_blank'>" + markerData[3] + "</a>")
+          markerClusterGroup.addLayer(marker);
+        }
     })})
   }
  
@@ -84,6 +90,7 @@ function LeafletMap() {
     const response = await fetch(`${API_URL}/getLocations`);
     responseJson.current = await response.json();
     
+    // create current position marker if it is allowed by user
     if (currentPositon_lat != 0 && currentPositon_long != 0) {
       mapInstance.createPane("locationMarker");
       mapInstance.getPane("locationMarker").style.zIndex = 999;
@@ -93,9 +100,7 @@ function LeafletMap() {
     setMarkerJson(responseJson.current);
     createMarkers(responseJson.current);
     mapInstance.fireEvent("moveend");
-    setTotalMarkersCount(responseJson.current.length);
   }
-  
   
   useEffect(() => {
       mapRef.current = L.map('map', {
@@ -103,28 +108,26 @@ function LeafletMap() {
       zoom: center_zoom,
       layers: [tileRef.current]
     });
-    setMarkerGroup(markersRef.current);
+    setMarkerClusterGroup(markersRef.current);
     setMapInstance(mapRef.current);
-     
-    //mapInstance.addLayer(markerGroup);
-
 },[]);
+
 useEffect(() => {
-  // Check for the map instance before adding something (ie: another event listener).
-  // If no map, return:
   if (!mapInstance) return;
   
   if (mapInstance) { 
+    // focus the view to the current location
     navigator.geolocation.getCurrentPosition(function(position) {
       currentPositon_lat = position.coords.latitude;
       currentPositon_long = position.coords.longitude;
       mapInstance.flyTo([currentPositon_lat,currentPositon_long], center_zoom + 4 );
-      //}
     });
     fetchData();
-      mapInstance.addLayer(markerGroup);
-      var legend = L.control({ position: "bottomright" });
-      legend.onAdd = function(mapInstance) {
+    mapInstance.addLayer(markerClusterGroup);
+
+    // add legend to the map
+    var legend = L.control({ position: "bottomright" });
+    legend.onAdd = function(mapInstance) {
       var div = L.DomUtil.create("div", "legend");
       div.innerHTML += "<h4>Kategorien</h4>";
         Object.keys(displayCategoryNames).forEach( key => {
@@ -132,13 +135,13 @@ useEffect(() => {
         });
       return div;
     };
-    
     legend.addTo(mapInstance);
   }
 }, [mapInstance]);
 
+// is called each time when the search bar changes and filter marker for the entry
 const filterData = (inputField) => {
-  markerGroup.clearLayers();
+  markerClusterGroup.clearLayers();
   if (inputField.target.value == "") {
     createMarkers(markerJson);
   }
@@ -152,23 +155,20 @@ const filterData = (inputField) => {
   mapInstance.fireEvent("moveend");
 }
 
+// is called each time when the map is moved and count the amount of markers
 if (mapInstance != null) {
   mapInstance.on('moveend', function() {
     setVisibleMarkersCount(0);
     var visibleMarkerCountTemp = 0;
     var bounds = mapInstance.getBounds();
 
-    markerGroup.eachLayer(function(marker) {
+    markerClusterGroup.eachLayer(function(marker) {
         if (marker instanceof L.Marker && bounds.contains(marker.getLatLng())) {
           visibleMarkerCountTemp += 1;
         }
     });
     setVisibleMarkersCount(visibleMarkerCountTemp);
   })
-}
-
-function getVisibleMarkersCount() {
-  return visibleMarkersCount;
 }
 
 return (

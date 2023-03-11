@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
-import "./css/BarChart.css"
+import "./css/ProvidersBarChart.css"
 
 const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050"
 
-function BarChart() {
+function ProvidersBarChart() {
 
-    const [startDateJson, setStartDateJson] = useState(null);
+    const [fetchedDataset, setFetchedDataset] = useState(null);
     const responseJson = useRef(null);
     const ammountOfShownProvider = 20;
     const margin = {top: 20, right: 50, bottom: 130, left: 35},
@@ -16,9 +16,13 @@ function BarChart() {
     const fetchData = async () => {
         const response = await fetch(`${API_URL}/coursesProvider`);
         responseJson.current = await response.json();
-        setStartDateJson(responseJson.current.map(listElem => [listElem[0], parseFloat(listElem[1])]));
+
+        // map the fetched file in valid format for the charts 
+        setFetchedDataset(responseJson.current.map(listElem => [listElem[0], parseFloat(listElem[1])]));
     }
-    var Tooltip = d3.select("#barChart")
+
+        /**************************Animation on mouseover*******************************/
+    var Tooltip = d3.select("#providersBarChart")
         .append("div")
         .style("opacity", 0)
         .attr("class", "tooltip")
@@ -48,7 +52,9 @@ function BarChart() {
         .style("stroke", "none")
         .style("opacity", 1)
     }
+    /********************************************************************************/
 
+    // wraps the x-axies provider names so that they are not overlapping
     function wrap(text, width) {
         text.each(function() {
           var text = d3.select(this),
@@ -73,9 +79,9 @@ function BarChart() {
         });
     }
 
-    function drawHeatMap(dataset) {
+    function drawBarChart(dataset) {
         
-        const svg = d3.select("#barChart")
+        const svg = d3.select("#providersBarChart")
             .append("svg")
             .attr("viewBox",`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
             .append("g")
@@ -100,12 +106,7 @@ function BarChart() {
             .range([ height, 0]);
         svg.append("g")
             .call(d3.axisLeft(y));
-
-        const dataValue = d3.scaleLinear()
-            .range([0,1000])
-            .domain([0, 100]);
         
-
         svg.selectAll()
             .data(dataset)
             .enter()
@@ -126,14 +127,14 @@ function BarChart() {
       },[]);
 
     useEffect(() => {
-        if (!startDateJson) return;
-        drawHeatMap(startDateJson.slice(0,ammountOfShownProvider));
+        if (!fetchedDataset) return;
+        drawBarChart(fetchedDataset.slice(0,ammountOfShownProvider));
         
-    },[startDateJson]);
+    },[fetchedDataset]);
 
-    return (<div id="barChart" className="fullwidth">
+    return (<div id="providersBarChart" className="fullwidth">
 
     </div>);
 }
 
-export default BarChart;
+export default ProvidersBarChart;

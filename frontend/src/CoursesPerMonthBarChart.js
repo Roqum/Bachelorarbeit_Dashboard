@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button} from "tabler-react";
+import { Button } from "tabler-react";
 import * as d3 from "d3";
-import "./css/BarChart.css"
-import * as categoryColors from "./assets/categoryColors.json";
-import * as displayCategoryNames from "./assets/categoryDisplayNames.json"
+
 const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5050"
 
 function CoursesPerMonthBarChart() {
@@ -11,9 +9,6 @@ function CoursesPerMonthBarChart() {
     const [startDateJson, setStartDateJson] = useState(null);
     const [activeDatasetIndicator, setActiveDatasetIndicator] = useState(null);
     const responseJson = useRef(null);
-
-
-
 
     const xAxiesMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const displayMonths = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
@@ -30,13 +25,14 @@ function CoursesPerMonthBarChart() {
         fetch(`${API_URL}/coursesStartDate`)
             .then( res => res.json())
             .then( resJson => {
+                // map the fetched file in a list of datasets for the diffrent years
                 responseJson.current = resJson.map(element => [element[0], (JSON.parse(element[1].replace(/'/g, '"')).map(elem => [parseInt(elem[0].split("-")[1]), parseInt(elem[1])]))]);
                 responseJson.current = responseJson.current.map(dataset => [dataset[0], dataset[1].sort((a,b) => b[1] - a[1])]);
                 setStartDateJson(responseJson.current);
             });
-
     }
 
+    // wraps the x-axies month names so that they are not overlapping
     function wrap(text, width) {
         text.each(function() {
           var text = d3.select(this),
@@ -168,6 +164,7 @@ function CoursesPerMonthBarChart() {
         setActiveDatasetIndicator(startDateJson[0][0]);
     },[startDateJson]);
 
+    // is called each time a year button is clicked and the dataset is changed
     useEffect(() => {
         if (!startDateJson) return;
         startDateJson.forEach(element => { 
@@ -180,9 +177,9 @@ function CoursesPerMonthBarChart() {
     return (
         startDateJson == null ?  <div></div> :
     <div  className="fullwidth"> 
-        {startDateJson.map(element => <Button onClick={() => setActiveDatasetIndicator(element[0])} role="button"> {element[0]}</Button>)}
         <div id="coursesPerMonthBarChart" className="fullwidth">
         </div>
+        {startDateJson.map(element => <Button onClick={() => setActiveDatasetIndicator(element[0])} role="button"> {"Jahr: " + element[0]}</Button>)}
     </div>
     );
 }

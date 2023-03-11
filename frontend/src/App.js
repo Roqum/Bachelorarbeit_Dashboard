@@ -5,9 +5,9 @@ import { createRoot } from 'react-dom/client';
 import LeafletMap from './MapComponent';
 import { Card, Button, Grid, Form, Page, ProgressCard, Loader} from "tabler-react";
 import { BuildingCommunity } from 'tabler-icons-react';
-import ScatterChart from './ScatterChartComponent';
+import CoursesPerDayHeatMap from './CoursesPerDayHeatMap';
 import CategoryBarChart from './CategoryBarChart';
-import BarChart from './BarChart';
+import ProvidersBarChart from './ProvidersBarChart';
 import CoursesPerMonthBarChart from './CoursesPerMonthBarChart';
 import CitiesBarChart from './CitiesBarChart';
 import "tabler-react/dist/Tabler.css";
@@ -27,6 +27,7 @@ function App() {
   const [generalNumbers,setGeneralNumbers] = useState([]);
   const [loaderSymbol,setLoaderSymbol] = useState(null);
 
+  /************ fetch data for wordcloud and general infos **************/
   function setCloudData(dataForCloud) {
     setData(data => data = dataForCloud)
   }
@@ -44,21 +45,19 @@ function App() {
       .catch( (err) => console.log("wordcloud error: " + err) );
     }
 
-  /* function fetchGeneralData() {
-      fetch(`${API_URL}/generalData`)
-      .then( (res) => {console.log(res.json()); setGeneralNumbers(res.json())})
-      .catch( (err) => console.log("wordcloud error: " + err) );
-  } */
   const fetchGeneralData = async () => {
     const response = await fetch(`${API_URL}/generalData`);
     setGeneralNumbers(await response.json());
 }
+/*************************************************************************/
 
+  // called once the page is opend
   useEffect(() => {
     fetchWordCloudData()
     fetchGeneralData()
   },[]);
 
+  // called if button for load data is clicked
   function loadData() {
     if(loaderSymbol== null) {
       setLoaderSymbol(<Loader className="loader-symbol" checked="true"></Loader>);
@@ -68,11 +67,9 @@ function App() {
           window.location.reload(true);
         }
       );
-      console.log("hi");
     }
   }
-
-
+  
   return(
     <div className="fullwidth">
       <div className="badge">
@@ -80,6 +77,7 @@ function App() {
         {loaderSymbol}
         <button onClick={loadData} role="button">Datensatz laden</button>
       </div>
+      <div className='dashboard-content'>
         <Grid.Row>
           <Grid.Col>
             <ProgressCard 
@@ -143,7 +141,7 @@ function App() {
                 </Card.Title>
               </Card.Header>
               <Card.Body>
-                <ScatterChart />
+                <CoursesPerDayHeatMap />
               </Card.Body>
             </Card>
           </Grid.Col>
@@ -177,7 +175,7 @@ function App() {
                 </Card.Title>
               </Card.Header>
               <Card.Body>
-                <BarChart />
+                <ProvidersBarChart />
               </Card.Body>
             </Card>
           </Grid.Col>
@@ -208,6 +206,7 @@ function App() {
               </Card>
             </Grid.Col>
           </Grid.Row>
+          </div>
         <div className="badge-bottom">
 
 

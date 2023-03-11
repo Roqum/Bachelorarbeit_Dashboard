@@ -1,3 +1,7 @@
+.dashboard-content {
+  margin: auto;
+  width: 75%;
+}
 .card-header {
   display: flex;
   justify-content: center;

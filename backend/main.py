@@ -18,10 +18,44 @@ CORS(app)
 
 DATABSE_FILENAME = "Top20k.json"
 
-#### Keywords to filter courses for subject #####
+#### Keywords to filter courses for categorys ####
 with open("category_keywords.json", "r") as file:
     CATEGORY_KEYWORDS = json.load(file)
 ##################################################
+
+### function to read json objects from dataset ###
+def get_jsonlist_from_database():
+    with open("./database/" + DATABSE_FILENAME, "r", encoding="utf-8") as stream: 
+        splitCharacter = '}'
+        return [json.loads(str(x + splitCharacter)) for x in stream.read().split(splitCharacter) if x != '\n' and x != '' and x != ' ' ]
+    
+
+########## write data files functions ###########
+
+# helper function to write a list format into a txt file
+def create_file_from_list(list_elem, filename):
+    first_comma_ignored = False
+    with open("./database/created_files/" + filename, "w") as filestream:
+        filestream.write('[')
+        for elem in list_elem:
+            if elem != "":
+                first_comma_ignored_2 = False
+                if (first_comma_ignored != True):
+                        first_comma_ignored = True
+                else:
+                    filestream.write(',')
+                if isinstance(elem,list):
+                    filestream.write('[')
+                    for elem_2 in elem:
+                        if (first_comma_ignored_2 != True):
+                            filestream.write('"' + str(elem_2).replace('\n', '') + '"')
+                            first_comma_ignored_2 = True
+                        else: 
+                            filestream.write(',"' + str(elem_2).replace('\n', '') + '"')
+                    filestream.write(']')
+                else:
+                        filestream.write('"' + str(elem).replace('\n', '') + '"')
+        filestream.write(']')
 
 def create_courses_categorys_files():
     with open("./database/created_files/courses_category.json", "w") as filestream: 
@@ -37,15 +71,19 @@ def create_courses_categorys_files():
                 filestream.write( json.dumps([[jsonobject['Longitude'], jsonobject['Latitude'], jsonobject['Kurstitel'], jsonobject['Kurslink']] for jsonobject in get_jsonlist_from_database() if any(word in jsonobject["Kurstitel"].lower() + jsonobject["Schlagwort"].lower() for word in keyword_list)]))          
         filestream.write("}")
 
-def get_jsonlist_from_database():
-    with open("./database/" + DATABSE_FILENAME, "r", encoding="utf-8") as stream: 
-        splitCharacter = '}'
-        return [json.loads(str(x + splitCharacter)) for x in stream.read().split(splitCharacter) if x != '\n' and x != '' and x != ' ' ]
 
-def split_all_words_of(jsonItem):
-    if jsonItem != "":
-       jsonObject = json.loads(jsonItem)
-    return jsonObject['Kurstitel'] + jsonObject['Kursbeschreibung']
+#################################################
+########### calculate data functions ############
+def get_word_count_list():
+    filter_words = set(stopwords.words('german')) 
+    filter_words.update({"ca", "tage", "tag", "erstellen", "gelernt", "vertiefung", "inhalte", "sowie", "lernen", "kurs", "gelernten", "m/w/d", "i", "ii", "iii" , "iv", "teil", "stufe"})
+    filter_symbols = string.punctuation + "0123456789"
+    word_occurrences = nltk.FreqDist('')
+    for jsonObject in get_jsonlist_from_database():
+        course_titel_words = nltk.word_tokenize(((jsonObject['Kurstitel']).lower()))        
+        word_occurrences.update([word for word in course_titel_words if word not in filter_words and word not in filter_symbols])
+
+    return [list(tuple_elem) for tuple_elem in word_occurrences.most_common(100)]
 
 def count_occurrences_of_each_elemt_in(list_elem):  
         amount_dict = dict()
@@ -57,20 +95,17 @@ def count_occurrences_of_each_elemt_in(list_elem):
 
         return [list(tuple_elem) for tuple_elem in amount_dict.items()]
 
-def create_course_provider_jsonfile():
-    course_provider_list = [jsonObject["Anbietername"] for jsonObject in get_jsonlist_from_database()]
-    provider_occurrences_amount = count_occurrences_of_each_elemt_in(course_provider_list)
-    first_comma_ignored = False
-    with open("./database/course_providers.txt", "w") as filestream:
-        filestream.write('[')
-        for provider in provider_occurrences_amount:
-            if (first_comma_ignored != True):
-                filestream.write('[' + provider[0] + ',' + str(provider[1]) + ']')
-                first_comma_ignored = True
-            else: 
-                filestream.write(',[' + provider[0] + ',' + str(provider[1]) + ']')
-        filestream.write(']')
+def dividedInYears(start_dates_list):
+    courses_per_month = dict()
+    for date_occurance in start_dates_list:
+        year = date_occurance[0][:4]
+        if (year in courses_per_month):
+            courses_per_month[year].append(date_occurance)
+        else:
+            courses_per_month[year] = [date_occurance]
+    return [list(tuple_elem) for tuple_elem in courses_per_month.items()]
 
+#################################################
 ################## Routings #####################
 @app.route("/coursesStartDateNoYear", methods=["GET"])
 def get_courses_start_date_no_year():
@@ -132,63 +167,12 @@ def get_courses_in_cities():
     except FileNotFoundError:
         return "No Data file found"
 
-#################################################
-
-def create_file_from_list(list_elem, filename):
-    first_comma_ignored = False
-    with open("./database/created_files/" + filename, "w") as filestream:
-        filestream.write('[')
-        for elem in list_elem:
-            if elem != "":
-                first_comma_ignored_2 = False
-                if (first_comma_ignored != True):
-                        first_comma_ignored = True
-                else:
-                    filestream.write(',')
-                if isinstance(elem,list):
-                    filestream.write('[')
-                    for elem_2 in elem:
-                        if (first_comma_ignored_2 != True):
-                            filestream.write('"' + str(elem_2).replace('\n', '') + '"')
-                            first_comma_ignored_2 = True
-                        else: 
-                            filestream.write(',"' + str(elem_2).replace('\n', '') + '"')
-                    filestream.write(']')
-                else:
-                        filestream.write('"' + str(elem).replace('\n', '') + '"')
-        filestream.write(']')
-
-def get_word_count_list():
-    filter_words = set(stopwords.words('german')) 
-    filter_words.update({"ca", "tage", "tag", "erstellen", "gelernt", "vertiefung", "inhalte", "sowie", "lernen", "kurs", "gelernten", "m/w/d", "i", "ii", "iii" , "iv", "teil", "stufe"})
-    filter_symbols = string.punctuation + "0123456789"
-    word_occurrences = nltk.FreqDist('')
-    for jsonObject in get_jsonlist_from_database():
-        course_titel_words = nltk.word_tokenize(((jsonObject['Kurstitel']).lower()))        
-        word_occurrences.update([word for word in course_titel_words if word not in filter_words and word not in filter_symbols])
-
-    return [list(tuple_elem) for tuple_elem in word_occurrences.most_common(100)]
-
-def dividedInYears(start_dates_list):
-    courses_per_month = dict()
-    for date_occurance in start_dates_list:
-        year = date_occurance[0][:4]
-        if (year in courses_per_month):
-            courses_per_month[year].append(date_occurance)
-        else:
-            courses_per_month[year] = [date_occurance]
-    return [list(tuple_elem) for tuple_elem in courses_per_month.items()]
-
+# called to calculate the dataset and create all files
 @app.route("/runDatabase", methods=["GET"])
 def run_database():
 
     # creating data file for courses in different categorys
     create_courses_categorys_files()
-
-    # creating data file for the map markers
-    """ markerlocations = [[jsonObject["Longitude"], jsonObject["Latitude"], jsonObject["Kurstitel"], jsonObject["Kurslink"] ] for jsonObject in get_jsonlist_from_database()]
-    create_file_from_list(markerlocations, "course_location.txt")
-    del markerlocations """
 
     # creating data file for the provider bar chart
     provider_occurrences_list = [jsonObject["Anbietername"] for jsonObject in get_jsonlist_from_database() if jsonObject["Anbietername"] != ""]
@@ -236,10 +220,9 @@ def run_database():
     create_file_from_list(general_infos, "general_infos.txt")
     del general_infos, amount_of_courses, amount_of_cities, amount_of_online_courses, amount_of_provider
 
-
-
     return "All Files are created"
- 
+
+#################################################
 
 
 if __name__ == "__main__":
