@@ -19,7 +19,7 @@ function HeatMap() {
     const responseJson = useRef(null);
 
     const fetchData = async () => {
-        const response = await fetch(`${API_URL}/coursesStartDateNoYear`);
+        const response = await fetch(`${API_URL}/coursesStartDateNoYear?year=${window.year}`);
         responseJson.current = await response.json();
 
         // maps the fetched file in valid format for the charts 

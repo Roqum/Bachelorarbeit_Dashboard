@@ -179,7 +179,7 @@ function CoursesPerMonthBarChart() {
     <div  className="fullwidth"> 
         <div id="coursesPerMonthBarChart" className="fullwidth">
         </div>
-        {startDateJson.map(element => <Button onClick={() => setActiveDatasetIndicator(element[0])} role="button"> {"Jahr: " + element[0]}</Button>)}
+        {startDateJson.map(element => <Button className="buttons" onClick={() => setActiveDatasetIndicator(element[0])} role="button"> {"Jahr: " + element[0]}</Button>)}
     </div>
     );
 }

@@ -1,95 +1,12 @@
-.dashboard-content {
-  margin: auto;
-  width: 75%;
+.buttons-list {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 5px;
+    min-height: 100vh;
 }
-.card-header {
-  display: flex;
-  justify-content: center;
-  text-align: center;
-  align-content: center;
-}
-.badge {
-  display: flex;
-  justify-content: space-between;
-  background-color: cornflowerblue;
-  width: 100%;
-  height: 40px;
-}
-.badge-bottom
-{
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  background-color: cornflowerblue;
-  width: 100%;
-  height: 40px;
-}
-.loader-symbol::before {
-  width: 10rem;
-  height: 10rem;
-  border-top-width: 8px;
-  border-right-width: 8px;
-  border-bottom-width: 8px;
-  border-left-width: 8px;
-}
-.loader-symbol::after {
-  width: 10rem;
-  height: 10rem;
-  border-top-width: 8px;
-  border-right-width: 8px;
-  border-bottom-width: 8px;
-  border-left-width: 8px;
-}
-.loader-symbol{
-  position: fixed;
-  left: 45% ;
-  top: 40% ;
-  z-index:999;
-}
-.fullsize {
-  height: 100%;
-}
-.fullwidth2 {
-  width: 100%;
-}
-.fullwidth {
-  width: 100%;
-}
-.card-body2{
-  min-height: 200px;
-}
-.display-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.numbers {
-  font-weight: 650px;
-  font-size: 60px;
-}
-.titles {
-  font-weight: 700px;
-  font-size: 30px;
-}
-.half-page {
-  min-width: 50%;
-  min-height: 400px;
-}
-.statsCard div {
-  padding-top: 10px;
-}
-.progress{
-  height: 3px;
-}
-.progressCard .h5 {
-  padding-bottom: 10px;
-  font-size: 14px;
-  overflow:hidden;
-  white-space:nowrap
-}
-.col {
-  padding: 5px;
-}
-.card {
-  margin-bottom: 0px;
+.buttons {
+    width: 200px;
 }

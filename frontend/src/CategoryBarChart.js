@@ -14,7 +14,7 @@ function CategoryBarChart() {
         height = 700 - margin.top - margin.bottom;
 
     const fetchData = async () => {
-        const response = await fetch(`${API_URL}/getLocations`);
+        const response = await fetch(`${API_URL}/getLocations?year=${window.year}`);
         responseJson.current = await response.json();
 
         // map the fetched json file in valid format for the charts 

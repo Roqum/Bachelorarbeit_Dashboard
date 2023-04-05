@@ -87,7 +87,7 @@ function LeafletMap() {
   }
  
   const fetchData = async () => {
-    const response = await fetch(`${API_URL}/getLocations`);
+    const response = await fetch(`${API_URL}/getLocations?year=${window.year}`);
     responseJson.current = await response.json();
     
     // create current position marker if it is allowed by user
@@ -173,7 +173,7 @@ if (mapInstance != null) {
 
 return (
 
-      <><Grid.Col width={2} className="map-component">
+      <><Grid.Col width={3} className="map-component">
     <ProgressCard
       className="progressCard "
       header="Courses in view Area"
@@ -181,7 +181,7 @@ return (
       progressWidth={100}
       content={visibleMarkersCount}>
     </ProgressCard>
-  </Grid.Col><Grid.Col width={6}>
+  </Grid.Col><Grid.Col width={9}>
       <Card>
         <Card.Body>
           <Form.InputGroup>

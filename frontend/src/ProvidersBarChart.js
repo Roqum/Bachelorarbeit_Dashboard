@@ -10,11 +10,11 @@ function ProvidersBarChart() {
     const responseJson = useRef(null);
     const ammountOfShownProvider = 20;
     const margin = {top: 20, right: 50, bottom: 130, left: 35},
-        width = 600 - margin.left - margin.right,
-        height = 600 - margin.top - margin.bottom;
+        width = 350 - margin.left - margin.right,
+        height = 350 - margin.top - margin.bottom;
 
     const fetchData = async () => {
-        const response = await fetch(`${API_URL}/coursesProvider`);
+        const response = await fetch(`${API_URL}/coursesProvider?year=${window.year}`);
         responseJson.current = await response.json();
 
         // map the fetched file in valid format for the charts 

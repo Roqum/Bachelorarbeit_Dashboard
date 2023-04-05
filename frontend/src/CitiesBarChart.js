@@ -13,7 +13,7 @@ function CitiesBarChart() {
         height = 600 - margin.top - margin.bottom;
 
     const fetchData = async () => {
-        const response = await fetch(`${API_URL}/getCoursesInCity`);
+        const response = await fetch(`${API_URL}/getCoursesInCity?year=${window.year}`);
         responseJson.current = await response.json();
 
         // map the fetched file in valid format for the charts 
