@@ -61,3 +61,8 @@
   margin: 0 8px 0 0;
   opacity: 0.7;
 }
+.icon {
+  width: 24px;
+  height: 24px;
+  margin-top: -2px;
+}
