@@ -1,5 +1,11 @@
-# Bachelorarbeit_Dashboard
-Bachelorarbeit-Dashboard
+# Bachelorarbeit Dashboard
+This website was created by me as a part of my bachelor thesis. The goal was to visualize the data of a meta search engine of courses all over germany to get valueable information out of pure data.
+
+Live demonstration here: https://dashboard.iplus.svc.educs-hosting.net/
+
+I used the free AdmitKit template (https://adminkit.io/) as visual foundation. 
+I used React to implement all the functionality to the website and implemented each graph as react component.
+D3js was used for the graphs and Leaflet was used for the map.
 
 # Install
 
