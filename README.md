@@ -1,4 +1,4 @@
-# Bachelorarbeit Dashboard
+# Bachelorthesis Data Visualization Dashboard
 This website was created by me as a part of my bachelor thesis. The goal was to visualize the data of a meta search engine of courses all over germany to get valueable information out of pure data.
 
 Live demonstration here: https://dashboard.iplus.svc.educs-hosting.net/
